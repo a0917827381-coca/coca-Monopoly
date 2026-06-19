@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>渴口手沖大富翁 - 完整版</title>
+    <title>渴口手沖大富翁 - 完整選角版</title>
     <style>
         :root { --tile-size: 180px; --map-size: calc(var(--tile-size) * 8); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #1a252f; font-family: 'Helvetica Neue', Arial, sans-serif; touch-action: none; }
@@ -11,74 +11,60 @@
         #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; cursor: grab; display: none; }
         #viewport:active { cursor: grabbing; }
 
-        #map {
-            width: var(--map-size); height: var(--map-size); position: absolute; top: 0; left: 0; background-color: #ecf0f1; 
-            transform-origin: top left; transition: transform 0.1s ease-out; box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
+        #map { width: var(--map-size); height: var(--map-size); position: absolute; top: 0; left: 0; background-color: #ecf0f1; transform-origin: top left; transition: transform 0.1s ease-out; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
 
-        /* 中央裝飾區 */
-        #map-center-decor {
-            position: absolute; top: var(--tile-size); left: var(--tile-size);
-            width: calc(var(--map-size) - var(--tile-size) * 2); height: calc(var(--map-size) - var(--tile-size) * 2);
-            background-color: #fdfbf7; border: 4px dashed #bdc3c7; box-sizing: border-box;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0.8; pointer-events: none;
-        }
+        #map-center-decor { position: absolute; top: var(--tile-size); left: var(--tile-size); width: calc(var(--map-size) - var(--tile-size) * 2); height: calc(var(--map-size) - var(--tile-size) * 2); background-color: #fdfbf7; border: 4px dashed #bdc3c7; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.8; pointer-events: none; }
         #map-center-decor h1 { font-size: 120px; color: #e67e22; margin: 0; text-shadow: 4px 4px 0px rgba(0,0,0,0.1); }
         #map-center-decor h2 { font-size: 60px; color: #7f8c8d; margin: 0; }
 
-        /* 格子樣式 */
-        .tile {
-            width: var(--tile-size); height: var(--tile-size); position: absolute; box-sizing: border-box; 
-            border: 3px solid #34495e; background-color: #fff; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center; cursor: pointer; 
-        }
+        .tile { width: var(--tile-size); height: var(--tile-size); position: absolute; box-sizing: border-box; border: 3px solid #34495e; background-color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; }
         .tile-id { font-size: 12px; color: #7f8c8d; position: absolute; top: 8px; left: 8px; }
         .tile-title { font-size: 20px; font-weight: bold; color: #2c3e50; pointer-events: none; }
         .tile-desc { font-size: 14px; color: #e74c3c; margin-top: 8px; pointer-events: none; }
         .tile-owner { font-size: 14px; color: #27ae60; font-weight: bold; margin-top: 5px; height: 18px; pointer-events: none;}
         .tile-level { font-size: 14px; color: #f39c12; margin-top: 2px; height: 18px; pointer-events: none;}
         
-        .tile.corner { background-color: #f1c40f; } 
-        .tile.event { background-color: #9b59b6; color: white; }
-        .tile.event .tile-title, .tile.event .tile-desc { color: white; }
+        .tile.corner { background-color: #f1c40f; } .tile.event { background-color: #9b59b6; color: white; } .tile.event .tile-title, .tile.event .tile-desc { color: white; }
 
-        /* 角色與血條 */
-        .character {
-            width: 60px; height: 60px; position: absolute; border-radius: 50%; 
-            background-size: contain; background-repeat: no-repeat; background-position: center;
-            background-color: #fff; border: 3px solid #34495e; box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-            transition: left 0.2s linear, top 0.2s linear; /* 步行速度 */
-            z-index: 10; pointer-events: none; 
-        }
-        .money-bar {
-            position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8); color: #f1c40f; padding: 4px 8px; border-radius: 12px; 
-            font-size: 14px; font-weight: bold; white-space: nowrap; border: 1px solid #f39c12;
-        }
+        /* 地圖上的角色標記 */
+        .character { width: 60px; height: 60px; position: absolute; border-radius: 50%; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: #fff; border: 3px solid #34495e; box-shadow: 0 4px 10px rgba(0,0,0,0.6); transition: left 0.2s linear, top 0.2s linear; z-index: 10; pointer-events: none; }
+        .money-bar { position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.8); color: #f1c40f; padding: 4px 8px; border-radius: 12px; font-size: 14px; font-weight: bold; white-space: nowrap; border: 1px solid #f39c12; }
         .money-bar.bankrupt { color: #e74c3c; border-color: #e74c3c; }
 
         #char-cuibi { background-image: url('cuibi.png'); }
         #char-bota { background-image: url('波塔.png'); }
         #char-tsui { background-image: url('萃之助.png'); }
         #char-kaka { background-image: url('喀喀.png'); }
-
-
-        /* UI 與大廳 */
+        /* 遊戲內 UI */
         #ui-layer { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 100; }
         button { padding: 15px 30px; font-size: 18px; font-weight: bold; color: white; background-color: #e67e22; border: none; border-radius: 30px; box-shadow: 0 6px 10px rgba(0,0,0,0.4); cursor: pointer; transition: all 0.2s; }
         button:active { transform: translateY(3px); box-shadow: 0 3px 5px rgba(0,0,0,0.4); }
         button:disabled { background-color: #95a5a6; cursor: not-allowed; transform: none; box-shadow: none;}
         #btn-locate { background-color: #2980b9; }
-
         #turn-indicator { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 10px 25px; border-radius: 20px; font-size: 18px; font-weight: bold; color: #2c3e50; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 100; display: none; }
 
-        /* 主動選擇大廳畫面 */
-        #lobby-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #2c3e50; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .lobby-box { background: white; color: #333; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 400px; width: 90%; }
-        .lobby-box h2 { margin-top: 0; color: #e67e22; font-size: 28px;}
-        .player-slot { display: flex; justify-content: space-between; align-items: center; background: #ecf0f1; padding: 10px 20px; margin: 10px 0; border-radius: 10px; font-weight: bold; }
-        .is-bot { color: #e74c3c; font-size: 12px; }
+        /* 全新大廳與選角畫面 */
+        #lobby-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #2c3e50; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; overflow-y: auto;}
+        .lobby-box { background: white; color: #333; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 450px; width: 90%; margin: 20px 0;}
+        .lobby-box h2 { margin-top: 0; color: #e67e22; font-size: 28px; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px;}
+        
+        /* 選角網格 UI */
+        .char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .char-card { background: #f8f9fa; border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px 10px; cursor: pointer; transition: all 0.2s; position: relative;}
+        .char-card:hover { border-color: #e67e22; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(230, 126, 34, 0.2);}
+        .char-card.taken { opacity: 0.5; cursor: not-allowed; border-color: #ecf0f1; transform: none; box-shadow: none;}
+        .char-card.selected { border-color: #27ae60; background: #e8f8f5; box-shadow: 0 0 0 2px #27ae60; }
+        .char-img-preview { width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; background-position: center; margin: 0 auto 10px; border-radius: 50%;}
+        
+        .preview-kaka { background-image: url('喀喀.jpg'); mix-blend-mode: multiply; background-color: transparent; } /* 在白底卡片上用 multiply 去背 */
+        .preview-cuibi { background-image: url('cuibi.png'); }
+        .preview-bota { background-image: url('波塔.png'); }
+        .preview-tsui { background-image: url('萃之助.png'); }
+
+        .char-name { font-weight: bold; color: #2c3e50; font-size: 16px; margin-bottom: 5px;}
+        .char-status { font-size: 12px; color: #7f8c8d; }
+        .char-status.host { color: #8e44ad; font-weight: bold;}
+        .char-status.me { color: #27ae60; font-weight: bold;}
 
         /* 中央事件框 */
         #event-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 200; display: none; justify-content: center; align-items: center; }
@@ -86,35 +72,50 @@
         #modal-title { font-size: 26px; color: #2c3e50; font-weight: bold; margin-bottom: 10px; }
         #modal-desc { font-size: 18px; color: #34495e; margin-bottom: 25px; line-height: 1.6; white-space: pre-wrap; font-weight: 500;}
         .modal-btn { width: 100%; margin-bottom: 12px; }
-        .btn-buy { background-color: #27ae60; }
-        .btn-upgrade { background-color: #f39c12; }
-        .btn-pay { background-color: #c0392b; }
-        .btn-close { background-color: #95a5a6; }
+        .btn-buy { background-color: #27ae60; } .btn-upgrade { background-color: #f39c12; } .btn-pay { background-color: #c0392b; } .btn-close { background-color: #95a5a6; }
     </style>
 </head>
 <body>
 
-<!-- 大廳 -->
 <div id="lobby-screen">
     <div class="lobby-box">
         <h2>渴口大富翁</h2>
         
-        <!-- 模式選擇 -->
-        <div id="lobby-mode-selection">
-            <p style="margin-bottom: 20px; font-weight: bold;">歡迎來到竹北高鐵特區！</p>
-            <button onclick="window.startBotMode()" style="width:100%; margin-bottom:15px; background-color:#27ae60;">🤖 電腦 PK 模式</button>
-            <button onclick="window.showMultiplayerSetup()" style="width:100%; background-color:#8e44ad;">👥 真人連線對戰</button>
+        <div id="lobby-state-mode">
+            <p style="margin-bottom: 20px; font-weight: bold; color:#34495e;">歡迎來到竹北高鐵特區！<br>請選擇遊玩模式</p>
+            <button onclick="window.goStateSingle()" style="width:100%; margin-bottom:15px; background-color:#27ae60;">🤖 單機電腦 PK</button>
+            <button onclick="window.goStateMultiInput()" style="width:100%; background-color:#8e44ad;">👥 真人連線對戰</button>
         </div>
 
-        <!-- 真人連線設定 -->
-        <div id="lobby-multiplayer-setup" style="display:none;">
-            <p style="font-weight: bold;">輸入房間代碼 (建立或加入)：</p>
-            <input type="text" id="input-room-id" value="coca-main" style="width:80%; padding:10px; font-size:16px; margin-bottom:15px; border-radius:5px; border:1px solid #ccc; text-align:center;">
-            <p id="room-id-display" style="font-weight:bold; color:#e67e22;"></p>
-            <div id="players-list"></div>
-            <button id="btn-start-game" style="width:100%; margin-top:20px; display:none;" onclick="window.startGame()"></button>
-            <button onclick="window.backToLobby()" style="width:100%; margin-top:10px; background-color:#95a5a6;">返回上一頁</button>
-            <p style="font-size:12px; color:#7f8c8d; margin-top:15px;">※ 房主開始後，空位由動物居民(電腦)接管</p>
+        <div id="lobby-state-single" style="display:none;">
+            <p style="font-weight: bold; color:#34495e;">請選擇你想扮演的角色：</p>
+            <div class="char-grid">
+                <div class="char-card" onclick="window.startSingleGame('cuibi')"><div class="char-img-preview preview-cuibi"></div><div class="char-name">萃比老闆</div></div>
+                <div class="char-card" onclick="window.startSingleGame('bota')"><div class="char-img-preview preview-bota"></div><div class="char-name">波塔</div></div>
+                <div class="char-card" onclick="window.startSingleGame('kaka')"><div class="char-img-preview preview-kaka"></div><div class="char-name">喀喀</div></div>
+                <div class="char-card" onclick="window.startSingleGame('tsui')"><div class="char-img-preview preview-tsui"></div><div class="char-name">萃之助</div></div>
+            </div>
+            <button onclick="window.backToMode()" style="width:100%; background-color:#95a5a6; padding: 10px;">返回</button>
+            <p style="font-size:12px; color:#7f8c8d; margin-top:15px;">※ 選擇後直接開局，其餘角色將由電腦接管</p>
+        </div>
+
+        <div id="lobby-state-multi-input" style="display:none;">
+            <p style="font-weight: bold; color:#34495e;">輸入連線代碼 (建立或加入)：</p>
+            <input type="text" id="input-room-id" value="coca-main" style="width:80%; padding:10px; font-size:16px; margin-bottom:20px; border-radius:5px; border:1px solid #ccc; text-align:center;">
+            <button onclick="window.joinMultiRoom()" style="width:100%; margin-bottom:15px; background-color:#2980b9;">進入等候室</button>
+            <button onclick="window.backToMode()" style="width:100%; background-color:#95a5a6; padding: 10px;">返回</button>
+        </div>
+
+        <div id="lobby-state-multi-room" style="display:none;">
+            <h3 style="margin-top:0; color:#8e44ad;">房間：<span id="display-room-id"></span></h3>
+            <p style="font-size:14px; color:#e74c3c; font-weight:bold;">點擊空位選擇角色坐下</p>
+            
+            <div class="char-grid" id="multi-char-grid">
+                </div>
+            
+            <button id="btn-start-multi" style="width:100%; margin-bottom:15px; background-color:#e67e22; display:none;" onclick="window.startMultiGame()">🚀 房主開始遊戲</button>
+            <button onclick="window.leaveRoom()" style="width:100%; background-color:#95a5a6; padding: 10px;">離開房間</button>
+            <p style="font-size:12px; color:#7f8c8d; margin-top:15px;">※ 房主開始後，未滿的空位由電腦補齊</p>
         </div>
     </div>
 </div>
@@ -139,17 +140,11 @@
     <button id="btn-roll" onclick="window.rollDice()">🎲 擲骰子</button>
 </div>
 
-<div id="event-modal-overlay">
-    <div id="event-modal">
-        <div id="modal-title"></div>
-        <div id="modal-desc"></div>
-        <div id="modal-actions"></div>
-    </div>
-</div>
+<div id="event-modal-overlay"><div id="event-modal"><div id="modal-title"></div><div id="modal-desc"></div><div id="modal-actions"></div></div></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAjLdcRZMsmgHppZkM9SuV2ikvBA5thnRw",
@@ -160,18 +155,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentRoom = urlParams.get('room') || 'coca-main';
-    
-    let MY_PLAYER_ID = localStorage.getItem('monopoly_pid') || null; 
     const PLAYER_ORDER = ['cuibi', 'bota', 'kaka', 'tsui'];
     const PLAYER_NAMES = { cuibi: '萃比老闆', bota: '波塔', kaka: '喀喀', tsui: '萃之助' };
     
+    // 全域變數
+    let MY_PLAYER_ID = null; 
+    let currentRoom = null;
+    let roomRef = null;
     let roomData = {};
     let isGameRunning = false;
-    let isMultiplayerMode = false;
+    let currentLobbyState = 'mode'; // 'mode', 'single', 'multi-input', 'multi-room'
 
-    // 🗺️ 地圖與類別事件
+    // ==========================================
+    // 地圖與事件資料庫
+    // ==========================================
     const mapEl = document.getElementById('map');
     const tileSize = 180; 
     const tilesData = [
@@ -214,8 +211,7 @@
 
     tilesData.forEach((tile, index) => {
         const div = document.createElement('div');
-        div.className = `tile ${tile.type || tile.category}`;
-        div.id = `tile-${index}`;
+        div.className = `tile ${tile.type || tile.category}`; div.id = `tile-${index}`;
         div.setAttribute('onclick', `window.showTileInfo(${index})`);
         const pos = getTilePosition(index);
         div.style.left = pos.x + 'px'; div.style.top = pos.y + 'px';
@@ -223,6 +219,7 @@
         mapEl.appendChild(div);
     });
 
+    // 拖曳邏輯
     const viewport = document.getElementById('viewport');
     let isDragging = false, startX, startY, initialTx, initialTy, currentTx = 0, currentTy = 0;
     const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
@@ -239,101 +236,148 @@
         mapEl.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'; mapEl.style.transform = `translate(${currentTx}px, ${currentTy}px)`;
     }
 
-    // 📡 監聽系統與大廳切換
-    const roomRef = ref(db, 'rooms/' + currentRoom);
-    onValue(roomRef, (snapshot) => {
-        roomData = snapshot.val() || {};
-        
-        if ((!roomData.status || roomData.status === 'waiting') && isMultiplayerMode) {
-            document.getElementById('lobby-mode-selection').style.display = 'none';
-            document.getElementById('lobby-multiplayer-setup').style.display = 'block';
-            document.getElementById('room-id-display').innerText = `連線代碼：${currentRoom}`;
-            renderLobbyPlayers();
-            return;
-        }
-
-        if (!roomData.status && !isMultiplayerMode) {
-            document.getElementById('lobby-screen').style.display = 'flex';
-            document.getElementById('lobby-mode-selection').style.display = 'block';
-            document.getElementById('lobby-multiplayer-setup').style.display = 'none';
-            return;
-        }
-
-        if (roomData.status === 'playing' && !isGameRunning) {
-            document.getElementById('lobby-screen').style.display = 'none';
-            document.getElementById('viewport').style.display = 'block';
-            document.getElementById('ui-layer').style.display = 'flex';
-            document.getElementById('turn-indicator').style.display = 'block';
-            isGameRunning = true;
-        }
-
-        updateBoardVisuals();
-        handleTurnLogic();
-    });
-
-    // 🎯 模式選擇
-    window.startBotMode = function() {
-        const timestampRoom = 'bot-' + Math.floor(Math.random() * 10000);
-        window.location.href = `?room=${timestampRoom}&mode=single`;
+    // ==========================================
+    // 大廳狀態機與選角邏輯
+    // ==========================================
+    
+    function switchLobbyState(state) {
+        currentLobbyState = state;
+        document.getElementById('lobby-state-mode').style.display = state === 'mode' ? 'block' : 'none';
+        document.getElementById('lobby-state-single').style.display = state === 'single' ? 'block' : 'none';
+        document.getElementById('lobby-state-multi-input').style.display = state === 'multi-input' ? 'block' : 'none';
+        document.getElementById('lobby-state-multi-room').style.display = state === 'multi-room' ? 'block' : 'none';
     }
 
-    if(urlParams.get('mode') === 'single') {
-        MY_PLAYER_ID = 'cuibi'; 
-        const updates = { status: 'playing', turnIndex: 0 };
+    window.goStateSingle = () => switchLobbyState('single');
+    window.goStateMultiInput = () => switchLobbyState('multi-input');
+    window.backToMode = () => switchLobbyState('mode');
+
+    // 【單機模式】：選完角色，自動創房並塞入電腦直接開始
+    window.startSingleGame = function(selectedPid) {
+        currentRoom = 'bot-' + Math.floor(Math.random() * 100000);
+        MY_PLAYER_ID = selectedPid;
+        roomRef = ref(db, 'rooms/' + currentRoom);
+        
+        const updates = { status: 'playing', turnIndex: 0, hostId: selectedPid };
         PLAYER_ORDER.forEach(pid => {
-            updates[`players/${pid}`] = { money: 5000, position: 0, isBot: (pid !== 'cuibi') };
+            updates[`players/${pid}`] = { money: 5000, position: 0, isBot: (pid !== selectedPid) };
         });
-        update(roomRef, updates);
+        set(roomRef, updates);
+        listenToRoom(); // 開始監聽房間
     }
 
-    window.showMultiplayerSetup = function() {
+    // 【多人模式】：輸入房間號，進入等候室
+    window.joinMultiRoom = function() {
         const inputId = document.getElementById('input-room-id').value;
-        if(inputId && inputId !== currentRoom) {
-            window.location.href = `?room=${inputId}`;
+        if (!inputId) return;
+        currentRoom = inputId;
+        document.getElementById('display-room-id').innerText = currentRoom;
+        roomRef = ref(db, 'rooms/' + currentRoom);
+        
+        // 清除上一次的本地記憶，強迫重新選角
+        MY_PLAYER_ID = null; 
+        
+        // 確保房間存在，如果沒有就初始化 waiting 狀態
+        get(roomRef).then((snap) => {
+            if(!snap.exists() || !snap.val().status) {
+                set(roomRef, { status: 'waiting' });
+            }
+            switchLobbyState('multi-room');
+            listenToRoom();
+        });
+    }
+
+    window.leaveRoom = function() {
+        if (MY_PLAYER_ID) {
+            // 從座位上離開
+            remove(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`));
+            MY_PLAYER_ID = null;
+        }
+        roomRef = null;
+        switchLobbyState('mode');
+    }
+
+    // 【多人模式】：點擊座位卡片選角
+    window.claimMultiSlot = function(targetPid) {
+        const players = roomData.players || {};
+        
+        // 如果這個位子有人坐了
+        if (players[targetPid] && !players[targetPid].isBot) {
+            if (targetPid === MY_PLAYER_ID) return; // 點自己沒反應
+            alert("這個角色已經被其他玩家選走了！");
             return;
         }
-        isMultiplayerMode = true;
-        get(roomRef).then((snapshot) => { roomData = snapshot.val() || {}; renderLobbyPlayers(); });
-    }
 
-    window.backToLobby = function() {
-        isMultiplayerMode = false;
-        document.getElementById('lobby-mode-selection').style.display = 'block';
-        document.getElementById('lobby-multiplayer-setup').style.display = 'none';
-    }
+        // 如果我原本已經有位子，先離開舊位子
+        if (MY_PLAYER_ID && MY_PLAYER_ID !== targetPid) {
+            remove(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`));
+            // 如果我是房主，把房主權限轉移 (這裡為求簡單，就直接清掉讓新選的人當)
+            if(roomData.hostId === MY_PLAYER_ID) {
+                set(ref(db, `rooms/${currentRoom}/hostId`), null);
+            }
+        }
 
-    function renderLobbyPlayers() {
-        const players = roomData.players || {};
-        let listHTML = ''; let isHost = false;
+        // 坐上新位子
+        MY_PLAYER_ID = targetPid;
+        set(ref(db, `rooms/${currentRoom}/players/${targetPid}`), { money: 5000, position: 0, isBot: false });
         
-        if (!MY_PLAYER_ID) {
-            for (let pid of PLAYER_ORDER) {
-                if (!players[pid] || players[pid].isBot) {
-                    MY_PLAYER_ID = pid; localStorage.setItem('monopoly_pid', pid);
-                    set(ref(db, `rooms/${currentRoom}/players/${pid}`), { money: 5000, position: 0, isBot: false });
-                    break;
+        // 如果房間沒有房主，第一個坐下的人就是房主
+        if (!roomData.hostId) {
+            set(ref(db, `rooms/${currentRoom}/hostId`), targetPid);
+        }
+    }
+
+    // 渲染多人等候室的選角網格
+    function renderMultiLobby() {
+        const players = roomData.players || {};
+        const hostId = roomData.hostId;
+        let gridHTML = '';
+
+        PLAYER_ORDER.forEach(pid => {
+            const isTakenByHuman = players[pid] && !players[pid].isBot;
+            const isMe = (pid === MY_PLAYER_ID);
+            const isHost = (pid === hostId);
+            
+            let cardClass = 'char-card';
+            let statusText = '【 空位 】點擊扮演';
+            let statusClass = '';
+
+            if (isTakenByHuman) {
+                if (isMe) {
+                    cardClass += ' selected';
+                    statusText = isHost ? '這是你 (房主)' : '這是你 (已準備)';
+                    statusClass = isHost ? 'host' : 'me';
+                } else {
+                    cardClass += ' taken';
+                    statusText = isHost ? '其他玩家 (房主)' : '其他玩家已選擇';
                 }
             }
-        }
-        if (MY_PLAYER_ID === 'cuibi') isHost = true;
 
-        PLAYER_ORDER.forEach(pid => {
-            const pData = players[pid];
-            if (pData && !pData.isBot) {
-                listHTML += `<div class="player-slot">${PLAYER_NAMES[pid]} <span style="color:#27ae60;">(真人 ${pid===MY_PLAYER_ID?' - 你':''})</span></div>`;
-            } else {
-                listHTML += `<div class="player-slot">${PLAYER_NAMES[pid]} <span class="is-bot">(等待真人加入...)</span></div>`;
-            }
+            gridHTML += `
+                <div class="${cardClass}" onclick="window.claimMultiSlot('${pid}')">
+                    <div class="char-img-preview preview-${pid}"></div>
+                    <div class="char-name">${PLAYER_NAMES[pid]}</div>
+                    <div class="char-status ${statusClass}">${statusText}</div>
+                </div>
+            `;
         });
 
-        document.getElementById('players-list').innerHTML = listHTML;
-        document.getElementById('btn-start-game').style.display = isHost ? 'block' : 'none';
-        if(isHost) document.getElementById('btn-start-game').innerText = "🚀 房主確認，開始遊戲";
+        document.getElementById('multi-char-grid').innerHTML = gridHTML;
+
+        // 房主控制按鈕
+        const btnStart = document.getElementById('btn-start-multi');
+        if (MY_PLAYER_ID && MY_PLAYER_ID === hostId) {
+            btnStart.style.display = 'block';
+        } else {
+            btnStart.style.display = 'none';
+        }
     }
 
-    window.startGame = function() {
+    // 【多人模式】：房主按下開始
+    window.startMultiGame = function() {
         const updates = { status: 'playing', turnIndex: 0 };
         PLAYER_ORDER.forEach(pid => {
+            // 把沒有真人坐的位子，全部設為電腦
             if (!roomData.players || !roomData.players[pid] || roomData.players[pid].isBot) {
                 updates[`players/${pid}`] = { money: 5000, position: 0, isBot: true };
             }
@@ -341,11 +385,34 @@
         update(roomRef, updates);
     }
 
-    window.resetGame = function() {
-        set(roomRef, { status: 'waiting' });
-        window.location.href = window.location.pathname; // 重新載入清除參數
+    // ==========================================
+    // 遊戲主迴圈與監聽
+    // ==========================================
+    function listenToRoom() {
+        onValue(roomRef, (snapshot) => {
+            roomData = snapshot.val() || {};
+            
+            // 如果還在等候中
+            if (!roomData.status || roomData.status === 'waiting') {
+                if(currentLobbyState === 'multi-room') renderMultiLobby();
+                return;
+            }
+
+            // 如果遊戲開始了，切換 UI
+            if (roomData.status === 'playing' && !isGameRunning) {
+                document.getElementById('lobby-screen').style.display = 'none';
+                document.getElementById('viewport').style.display = 'block';
+                document.getElementById('ui-layer').style.display = 'flex';
+                document.getElementById('turn-indicator').style.display = 'block';
+                isGameRunning = true;
+            }
+
+            updateBoardVisuals();
+            handleTurnLogic();
+        });
     }
 
+    // 🎨 畫面更新與逐格步行 (不變)
     let knownPositions = { cuibi: 0, bota: 0, kaka: 0, tsui: 0 };
     function updateBoardVisuals() {
         const tiles = roomData.tiles || {};
@@ -403,7 +470,6 @@
         const players = roomData.players || {};
         let isGameOver = false; let bankruptPlayer = null;
         
-        // 破產檢查
         PLAYER_ORDER.forEach(pid => {
             if (players[pid] && players[pid].money <= 0) {
                 isGameOver = true; bankruptPlayer = PLAYER_NAMES[pid];
@@ -433,7 +499,7 @@
                 resultHTML += `<p style="margin:8px 0; font-weight:bold;">🏆 第 ${index+1} 名：${player.name} <br><span style="color:#27ae60; font-size:14px;">💰 總資產：$${player.assets}</span></p>`;
             });
             resultHTML += `</div>`;
-            resultHTML += `<button class="modal-btn btn-upgrade" style="margin-top:20px;" onclick="window.resetGame()">返回大廳重新開局</button>`;
+            resultHTML += `<button class="modal-btn btn-upgrade" style="margin-top:20px;" onclick="window.location.reload()">返回大廳</button>`;
             
             showSysModal("遊戲結算排行榜", resultHTML);
             return; 
@@ -454,7 +520,8 @@
             focusCameraOn(pData.position);
         }
 
-        if (pData.isBot && MY_PLAYER_ID === 'cuibi' && !roomData.botActionState) {
+        // 電腦由房主代理執行
+        if (pData.isBot && MY_PLAYER_ID === roomData.hostId && !roomData.botActionState) {
             set(ref(db, `rooms/${currentRoom}/botActionState`), 'rolling');
             setTimeout(() => { executeBotTurn(activePlayer, pData); }, 1500);
         }
@@ -503,20 +570,18 @@
             set(ref(db, `rooms/${currentRoom}/players/${botId}/money`), newMoney);
             showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision);
             
-            setTimeout(() => { endTurn(); closeModal(); }, 2500);
+            setTimeout(() => { window.endTurn(); closeModal(); }, 2500);
         }, dice * 200 + 500);
     }
 
+    // 🎴 互動視窗系統
     const modalOverlay = document.getElementById('event-modal-overlay');
     const modalTitle = document.getElementById('modal-title');
     const modalDesc = document.getElementById('modal-desc');
     const modalActions = document.getElementById('modal-actions');
 
     window.closeModal = function() { modalOverlay.style.display = 'none'; }
-    function showSysModal(title, desc) {
-        modalTitle.innerText = title; modalDesc.innerHTML = desc; modalActions.innerHTML = '';
-        modalOverlay.style.display = 'flex';
-    }
+    function showSysModal(title, desc) { modalTitle.innerText = title; modalDesc.innerHTML = desc; modalActions.innerHTML = ''; modalOverlay.style.display = 'flex'; }
 
     window.showTileInfo = function(posIndex) {
         if(modalOverlay.style.display === 'flex') return;
@@ -532,6 +597,7 @@
         modalOverlay.style.display = 'flex';
     }
 
+    // 真人回合行動
     window.rollDice = function() {
         document.getElementById('btn-roll').disabled = true;
         const pData = roomData.players[MY_PLAYER_ID];
@@ -592,20 +658,12 @@
 
     window.buyLand = function(pos, price) {
         const pMoney = roomData.players[MY_PLAYER_ID].money;
-        if(pMoney >= price) {
-            update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price});
-            set(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { owner: MY_PLAYER_ID, level: 1 });
-            endTurn(); closeModal();
-        } else alert("資金不足！");
+        if(pMoney >= price) { update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price}); set(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { owner: MY_PLAYER_ID, level: 1 }); window.endTurn(); closeModal(); } else alert("資金不足！");
     }
 
     window.upgradeLand = function(pos, price, currentLevel) {
         const pMoney = roomData.players[MY_PLAYER_ID].money;
-        if(pMoney >= price) {
-            update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price});
-            update(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { level: currentLevel + 1 });
-            endTurn(); closeModal();
-        } else alert("資金不足！");
+        if(pMoney >= price) { update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price}); update(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { level: currentLevel + 1 }); window.endTurn(); closeModal(); } else alert("資金不足！");
     }
 
     window.payRent = function(ownerId, rent) {
@@ -613,7 +671,7 @@
         update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - rent});
         const oMoney = roomData.players[ownerId].money;
         set(ref(db, `rooms/${currentRoom}/players/${ownerId}/money`), oMoney + rent);
-        endTurn(); closeModal();
+        window.endTurn(); closeModal();
     }
 
     window.endTurn = function() {
