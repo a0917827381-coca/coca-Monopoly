@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>渴口手沖大富翁 - 即時戰報版</title>
+    <title>渴口手沖大富翁 - 法拍與神明版</title>
     <style>
         :root { --tile-size: 180px; --map-size: calc(var(--tile-size) * 8); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #1a252f; font-family: 'Helvetica Neue', Arial, sans-serif; touch-action: none; }
@@ -32,12 +32,11 @@
         .character { width: 70px; height: 70px; position: absolute; border-radius: 50%; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: #fff; border: 4px solid #34495e; filter: drop-shadow(8px 12px 6px rgba(0,0,0,0.5)); transition: left 0.2s linear, top 0.2s linear; z-index: 10; pointer-events: none; animation: floatChar 2s ease-in-out infinite; }
         @keyframes floatChar { 0% { transform: translateY(0px); } 50% { transform: translateY(-6px); } 100% { transform: translateY(0px); } }
 
-        .money-bar { position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.85); color: #f1c40f; padding: 5px 10px; border-radius: 12px; font-size: 15px; font-weight: bold; white-space: nowrap; border: 2px solid #f39c12; box-shadow: 0 4px 6px rgba(0,0,0,0.5);}
-        .money-bar.bankrupt { color: #e74c3c; border-color: #e74c3c; }
+        /* 隱藏頭頂血條，改由左上角計分板呈現 */
+        .money-bar { display: none; }
 
         #char-cuibi { background-image: url('cuibi.png'); } #char-bota { background-image: url('bota.png'); } #char-tsui { background-image: url('tsui.png'); } #char-kaka { background-image: url('kaka.png'); }
 
-        /* UI 層設定 */
         #ui-layer { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 100; width: 90%; max-width: 400px; justify-content: center;}
         button { padding: 15px 30px; font-size: 18px; font-weight: bold; color: white; background-color: #e67e22; border: none; border-radius: 30px; box-shadow: 0 6px 10px rgba(0,0,0,0.4); cursor: pointer; transition: all 0.2s; white-space: nowrap;}
         button:active { transform: translateY(3px); box-shadow: 0 3px 5px rgba(0,0,0,0.4); }
@@ -47,20 +46,20 @@
         #turn-indicator { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 10px 25px; border-radius: 20px; font-size: 18px; font-weight: bold; color: #2c3e50; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 100; display: none; border: 2px solid #bdc3c7;}
 
         /* 🏆 即時戰報計分板 */
-        #scoreboard { position: fixed; top: 20px; left: 20px; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 100; border: 2px solid #bdc3c7; display: none; flex-direction: column; gap: 8px; pointer-events: none; min-width: 160px;}
+        #scoreboard { position: fixed; top: 20px; left: 20px; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 100; border: 2px solid #bdc3c7; display: none; flex-direction: column; gap: 8px; pointer-events: none; min-width: 180px;}
         #scoreboard-title { font-size: 14px; font-weight: bold; color: #7f8c8d; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-bottom: 5px; text-align: center;}
-        .score-row { display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #2c3e50; align-items: center;}
-        .score-name { display: flex; align-items: center; gap: 6px; }
+        .score-row { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: bold; color: #2c3e50; }
         .score-color { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #333;}
         .color-cuibi { background: #e74c3c; } .color-bota { background: #3498db; } .color-kaka { background: #f1c40f; } .color-tsui { background: #2ecc71; }
+        .score-assets { font-size: 13px; color: #7f8c8d; margin-left: 18px; margin-top: 2px;}
 
-        /* 📱 手機版 RWD 響應式排版調整 */
+        /* 📱 手機版 RWD 響應式排版 */
         @media (max-width: 768px) {
-            #scoreboard { top: 10px; left: 10px; padding: 10px; min-width: 130px;}
+            #scoreboard { top: auto; bottom: 90px; left: 10px; padding: 10px; min-width: 150px; background: rgba(255,255,255,0.85); box-shadow: none;}
             #scoreboard-title { font-size: 12px; }
             .score-row { font-size: 13px; }
-            /* 將回合提示移到右上角，避免與計分板重疊 */
-            #turn-indicator { top: 10px; left: auto; right: 10px; transform: none; padding: 8px 15px; font-size: 14px; }
+            .score-assets { font-size: 11px; }
+            #turn-indicator { top: 15px; padding: 8px 15px; font-size: 14px; }
             #ui-layer { bottom: 20px; gap: 10px; }
             button { padding: 12px 20px; font-size: 16px; }
         }
@@ -128,9 +127,9 @@
 
 <div id="turn-indicator"></div>
 
-<!-- 🏆 新增：全域即時戰報計分板 -->
+<!-- 🏆 全域即時戰報計分板 -->
 <div id="scoreboard">
-    <div id="scoreboard-title">📈 實時總資產 (現金+地產)</div>
+    <div id="scoreboard-title">📈 資產與狀態</div>
     <div id="scoreboard-list"></div>
 </div>
 
@@ -142,10 +141,10 @@
 <div id="viewport">
     <div id="map">
         <div id="map-center-decor"><h1>COCA</h1><h2>大富翁</h2></div>
-        <div id="char-cuibi" class="character"><div class="money-bar" id="money-cuibi">$12000</div></div>
-        <div id="char-bota" class="character"><div class="money-bar" id="money-bota">$12000</div></div>
-        <div id="char-kaka" class="character"><div class="money-bar" id="money-kaka">$12000</div></div>
-        <div id="char-tsui" class="character"><div class="money-bar" id="money-tsui">$12000</div></div>
+        <div id="char-cuibi" class="character"></div>
+        <div id="char-bota" class="character"></div>
+        <div id="char-kaka" class="character"></div>
+        <div id="char-tsui" class="character"></div>
     </div>
 </div>
 
@@ -169,16 +168,67 @@
     let MY_PLAYER_ID = null; let currentRoom = null; let roomRef = null; let roomData = {}; let isGameRunning = false; let currentLobbyState = 'mode'; 
     let localLastRollTime = 0; let isFirstLoad = true; let isShowingGameOver = false;
 
+    // 🎲 擴充：5 個隨機事件/地點
     const LOCATION_EVENTS = {
-        "水圳森林公園": [{ desc: "帶手沖咖啡去野餐大受歡迎！賺取 $1000。", money: 1000, skip: 0 }, { desc: "在草地上野餐被野狗搶走食物，重買花費 $300。", money: -300, skip: 0 }, { desc: "遇到來散步的熟客，聊得很開心，獲得小費 $500。", money: 500, skip: 0 }, { desc: "躺在草地上睡著了，錯過營業時間，暫停一回合。", money: 0, skip: 1 }],
-        "元大銀行": [{ desc: "00929 ETF 配息入帳！爽賺 $2000。", money: 2000, skip: 0 }, { desc: "台股大跌，融資面臨斷頭，慘賠 $1500。", money: -1500, skip: 0 }, { desc: "申辦企業青年貸款成功，獲得周轉金 $1000。", money: 1000, skip: 0 }, { desc: "遇到銀行系統當機，排隊處理浪費時間，暫停一回合。", money: 0, skip: 1 }],
-        "台大醫院": [{ desc: "定期健康檢查，自費項目花費 $800。", money: -800, skip: 0 }, { desc: "喝太多咖啡引發胃食道逆流，掛急診並休養一回合，花費 $500。", money: -500, skip: 1 }, { desc: "在醫院大廳巧遇醫生粉絲，霸氣包下 20 杯拿鐵，賺取 $1500。", money: 1500, skip: 0 }, { desc: "看錯門診時間，白跑一趟，退回掛號費 $200。", money: 200, skip: 0 }],
-        "人氣牙醫": [{ desc: "預約額滿，現場苦等洗牙，繳納掛號費 $200。", money: -200, skip: 0 }, { desc: "智齒突然發炎，緊急拔牙痛到無法工作，休養一回合，花費 $800。", money: -800, skip: 1 }, { desc: "被牙醫稱讚牙齒保養得很好，心情大好！", money: 0, skip: 0 }, { desc: "被推銷冷光美白套餐，腦波弱買了，花費 $1000。", money: -1000, skip: 0 }],
-        "地方稅務局": [{ desc: "申報營業稅，繳納稅金 $1500。", money: -1500, skip: 0 }, { desc: "發現多繳稅款，獲得退稅 $1000。", money: 1000, skip: 0 }, { desc: "稅務資料有誤，被留下來喝茶約談，暫停一回合。", money: 0, skip: 1 }, { desc: "順手幫稅務局人員沖了一杯精品咖啡，獲得車馬費 $500。", money: 500, skip: 0 }],
-        "遇到垃圾車": [{ desc: "給力給力給～成功追上垃圾車，丟完垃圾神清氣爽！", money: 0, skip: 0 }, { desc: "追垃圾車跑太快，口袋裡的錢不小心掉出來，損失 $500。", money: -500, skip: 0 }, { desc: "幫鄰居倒垃圾，鄰居阿姨熱情贊助 $300。", money: 300, skip: 0 }, { desc: "錯過垃圾車，提著臭垃圾回家鬱悶一回合。", money: 0, skip: 1 }],
-        "六家火車站": [{ desc: "搭乘台鐵區間車，巧遇高中同學，獲贈紅包 $500。", money: 500, skip: 0 }, { desc: "火車誤點，被迫坐在月台空等，暫停一回合。", money: 0, skip: 1 }, { desc: "在車站擺攤賣耳掛包，生意興隆賺取 $1200。", money: 1200, skip: 0 }, { desc: "買錯車票又弄丟錢包，倒霉損失 $800。", money: -800, skip: 0 }]
+        "水圳森林公園": [
+            { desc: "帶手沖咖啡去野餐大受歡迎！賺取 $1000。", money: 1000, skip: 0 },
+            { desc: "在草地上野餐被野狗搶走食物，重買花費 $300。", money: -300, skip: 0 },
+            { desc: "遇到來散步的熟客，聊得很開心，獲得小費 $500。", money: 500, skip: 0 },
+            { desc: "躺在草地上睡著了，錯過營業時間，暫停一回合。", money: 0, skip: 1 },
+            { desc: "舉辦假日文創市集，攤位費收入 $800。", money: 800, skip: 0 }
+        ],
+        "元大銀行": [
+            { desc: "00929 ETF 配息入帳！爽賺 $2000。", money: 2000, skip: 0 },
+            { desc: "台股大跌，融資面臨斷頭，慘賠 $1500。", money: -1500, skip: 0 },
+            { desc: "申辦企業青年貸款成功，獲得周轉金 $1000。", money: 1000, skip: 0 },
+            { desc: "遇到銀行系統當機，排隊處理浪費時間，暫停一回合。", money: 0, skip: 1 },
+            { desc: "定存到期解約，獲得利息 $600。", money: 600, skip: 0 }
+        ],
+        "台大醫院": [
+            { desc: "定期健康檢查，自費項目花費 $800。", money: -800, skip: 0 },
+            { desc: "喝太多咖啡引發胃食道逆流，休養一回合並付 $500。", money: -500, skip: 1 },
+            { desc: "在醫院大廳巧遇醫生粉絲，霸氣包下拿鐵，賺取 $1500。", money: 1500, skip: 0 },
+            { desc: "看錯門診時間，白跑一趟，退回掛號費 $200。", money: 200, skip: 0 },
+            { desc: "參與生技新藥試驗，獲得營養金 $1000。", money: 1000, skip: 0 }
+        ],
+        "人氣牙醫": [
+            { desc: "預約額滿，現場苦等洗牙，繳納掛號費 $200。", money: -200, skip: 0 },
+            { desc: "智齒發炎，緊急拔牙痛到休養一回合，花費 $800。", money: -800, skip: 1 },
+            { desc: "被牙醫稱讚牙齒保養得很好，送你高級牙膏套組！", money: 0, skip: 0 },
+            { desc: "被推銷冷光美白套餐，腦波弱買了，花費 $1000。", money: -1000, skip: 0 },
+            { desc: "診所周年慶，幸運抽中免單優惠，並獲得獎金 $500。", money: 500, skip: 0 }
+        ],
+        "地方稅務局": [
+            { desc: "申報營業稅，繳納稅金 $1500。", money: -1500, skip: 0 },
+            { desc: "發現多繳稅款，獲得退稅 $1000。", money: 1000, skip: 0 },
+            { desc: "稅務資料有誤，被留下來約談，暫停一回合。", money: 0, skip: 1 },
+            { desc: "幫稅務局人員沖精品咖啡，獲得車馬費 $500。", money: 500, skip: 0 },
+            { desc: "節稅規劃大成功！省下大筆開銷，資金增加 $800。", money: 800, skip: 0 }
+        ],
+        "遇到垃圾車": [
+            { desc: "給力給力給～追上垃圾車，神清氣爽！", money: 0, skip: 0 },
+            { desc: "追垃圾車掉出錢包，損失 $500。", money: -500, skip: 0 },
+            { desc: "幫鄰居倒垃圾，鄰居阿姨熱情贊助 $300。", money: 300, skip: 0 },
+            { desc: "錯過垃圾車，提著臭垃圾回家鬱悶一回合。", money: 0, skip: 1 },
+            { desc: "資源回收賣了好價錢，小賺 $200。", money: 200, skip: 0 }
+        ],
+        "六家火車站": [
+            { desc: "巧遇高中同學，獲贈紅包 $500。", money: 500, skip: 0 },
+            { desc: "火車誤點，被迫在月台空等，暫停一回合。", money: 0, skip: 1 },
+            { desc: "在車站擺攤賣耳掛包，生意興隆賺取 $1200。", money: 1200, skip: 0 },
+            { desc: "買錯車票又弄丟行李，倒霉損失 $800。", money: -800, skip: 0 },
+            { desc: "幫忙指路外國旅客，獲贈小費 $400。", money: 400, skip: 0 }
+        ]
     };
     const DEFAULT_EVENTS = [{ desc: "平安無事的一天。", money: 0, skip: 0 }];
+
+    // 👼 神明級強力事件 (任意人走超過 2 圈後解鎖)
+    const POWERFUL_EVENTS = [
+        { desc: "【創投天使降臨】科技業財神看中你，投資擴店基金 $5000！", money: 5000, skip: 0 },
+        { desc: "【國稅局大查稅】被查出漏開發票，強制補繳鉅額罰款 $3000！", money: -3000, skip: 0 },
+        { desc: "【在地房仲加持】隨機將你名下一塊地產，無償蓋到滿星級！", money: 0, skip: 0, special: 'upgrade_random' },
+        { desc: "【特區都更徵收】高鐵特區重新規劃，名下隨機一塊地產被強制徵收！(補償 $1000)", money: 1000, skip: 0, special: 'remove_random' }
+    ];
 
     const mapEl = document.getElementById('map'); const tileSize = 180; 
     const tilesData = [
@@ -210,6 +260,9 @@
         mapEl.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'; mapEl.style.transform = `translate(${currentTx}px, ${currentTy}px)`;
     }
 
+    // ==========================================
+    // 大廳狀態
+    // ==========================================
     function switchLobbyState(state) {
         currentLobbyState = state; document.getElementById('lobby-state-mode').style.display = state === 'mode' ? 'block' : 'none'; document.getElementById('lobby-state-single').style.display = state === 'single' ? 'block' : 'none'; document.getElementById('lobby-state-multi-input').style.display = state === 'multi-input' ? 'block' : 'none'; document.getElementById('lobby-state-multi-room').style.display = state === 'multi-room' ? 'block' : 'none';
     }
@@ -219,7 +272,7 @@
     window.startSingleGame = function(selectedPid) {
         currentRoom = 'bot-' + Math.floor(Math.random() * 100000); MY_PLAYER_ID = selectedPid; roomRef = ref(db, 'rooms/' + currentRoom);
         const roomInitialData = { status: 'playing', turnIndex: 0, hostId: selectedPid, players: {} };
-        PLAYER_ORDER.forEach(pid => { roomInitialData.players[pid] = { money: 12000, position: 0, isBot: (pid !== selectedPid), skipTurns: 0 }; });
+        PLAYER_ORDER.forEach(pid => { roomInitialData.players[pid] = { money: 12000, position: 0, laps: 0, isBot: (pid !== selectedPid), skipTurns: 0 }; });
         set(roomRef, roomInitialData).then(() => { listenToRoom(); }).catch(err => alert("建立失敗"));
     }
 
@@ -238,7 +291,7 @@
         const players = roomData.players || {};
         if (players[targetPid] && !players[targetPid].isBot) { if (targetPid === MY_PLAYER_ID) return; alert("此角色已被選走！"); return; }
         if (MY_PLAYER_ID && MY_PLAYER_ID !== targetPid) { remove(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`)); if(roomData.hostId === MY_PLAYER_ID) set(ref(db, `rooms/${currentRoom}/hostId`), null); }
-        MY_PLAYER_ID = targetPid; set(ref(db, `rooms/${currentRoom}/players/${targetPid}`), { money: 12000, position: 0, isBot: false, skipTurns: 0 });
+        MY_PLAYER_ID = targetPid; set(ref(db, `rooms/${currentRoom}/players/${targetPid}`), { money: 12000, position: 0, laps: 0, isBot: false, skipTurns: 0 });
         if (!roomData.hostId) set(ref(db, `rooms/${currentRoom}/hostId`), targetPid);
     }
 
@@ -256,7 +309,7 @@
 
     window.startMultiGame = function() {
         const updates = { status: 'playing', turnIndex: 0 };
-        PLAYER_ORDER.forEach(pid => { if (!roomData.players || !roomData.players[pid] || roomData.players[pid].isBot) { updates[`players/${pid}/money`] = 12000; updates[`players/${pid}/position`] = 0; updates[`players/${pid}/isBot`] = true; updates[`players/${pid}/skipTurns`] = 0; } });
+        PLAYER_ORDER.forEach(pid => { if (!roomData.players || !roomData.players[pid] || roomData.players[pid].isBot) { updates[`players/${pid}/money`] = 12000; updates[`players/${pid}/position`] = 0; updates[`players/${pid}/laps`] = 0; updates[`players/${pid}/isBot`] = true; updates[`players/${pid}/skipTurns`] = 0; } });
         update(roomRef, updates);
     }
 
@@ -271,24 +324,61 @@
         }, 1500); 
     }
 
+    // ==========================================
+    // 🏦 全域金流與強制法拍運算核心
+    // ==========================================
+    window.calcPayment = function(pid, amount) {
+        let pData = roomData.players[pid];
+        let currentMoney = pData.money;
+        let debt = amount - currentMoney;
+        let updates = {};
+        let soldLogs = [];
+        
+        if (debt > 0) {
+            let tiles = roomData.tiles || {};
+            let myProperties = [];
+            for (let i = 0; i < 28; i++) {
+                if (tiles[i] && tiles[i].owner === pid) {
+                    // 法拍價值：原價 * 等級 / 2
+                    myProperties.push({ id: i, value: (tilesData[i].price * (tiles[i].level || 1)) / 2, title: tilesData[i].title });
+                }
+            }
+            
+            while (debt > 0 && myProperties.length > 0) {
+                // 尋找大於等於欠款中最小的，或最貴的
+                let bestIdx = -1; let bestDiff = Infinity; let maxIdx = -1; let maxVal = -1;
+                for (let i = 0; i < myProperties.length; i++) {
+                    let v = myProperties[i].value;
+                    if (v >= debt && v - debt < bestDiff) { bestDiff = v - debt; bestIdx = i; }
+                    if (v > maxVal) { maxVal = v; maxIdx = i; }
+                }
+                let sellIdx = bestIdx !== -1 ? bestIdx : maxIdx;
+                let prop = myProperties[sellIdx];
+                
+                debt -= prop.value;
+                currentMoney += prop.value;
+                soldLogs.push(`${prop.title}(+$${prop.value})`);
+                updates[`tiles/${prop.id}`] = null; // 釋出土地
+                myProperties.splice(sellIdx, 1);
+            }
+        }
+        
+        updates[`players/${pid}/money`] = currentMoney - amount;
+        return { updates, soldLogs };
+    }
+
     function listenToRoom() {
         onValue(roomRef, (snapshot) => {
             roomData = snapshot.val() || {};
-            
             if (isFirstLoad) { if (roomData.lastRoll) { localLastRollTime = roomData.lastRoll.time; } isFirstLoad = false; }
-
             if (!roomData.status || roomData.status === 'waiting') { if(currentLobbyState === 'multi-room') renderMultiLobby(); return; }
             
-            // 🛑 偵測到遊戲結束狀態，強制凍結一切並顯示排行榜
-            if (roomData.status === 'game_over') {
-                showGameOverModal();
-                return; 
-            }
+            if (roomData.status === 'game_over') { showGameOverModal(); return; }
 
             if (roomData.status === 'playing' && !isGameRunning) {
                 document.getElementById('lobby-screen').style.display = 'none'; document.getElementById('viewport').style.display = 'block';
                 document.getElementById('ui-layer').style.display = 'flex'; document.getElementById('turn-indicator').style.display = 'block';
-                document.getElementById('scoreboard').style.display = 'flex'; // 顯示計分板
+                document.getElementById('scoreboard').style.display = 'flex';
                 isGameRunning = true;
             }
             
@@ -316,18 +406,19 @@
 
         PLAYER_ORDER.forEach(pid => {
             const pData = players[pid]; if(!pData) return;
-            const moneyBar = document.getElementById(`money-${pid}`);
-            moneyBar.innerText = `$${pData.money}`;
-            if (pData.money <= 0) moneyBar.classList.add('bankrupt'); else moneyBar.classList.remove('bankrupt');
-
+            
             if (knownPositions[pid] !== pData.position) {
                 walkPath(pid, knownPositions[pid], pData.position); knownPositions[pid] = pData.position;
             } else { setCharPosition(pid, pData.position); }
 
-            // 📈 計算即時戰報資產
-            let totalAssets = pData.money || 0;
-            for (let i = 0; i < 28; i++) { if (tiles[i] && tiles[i].owner === pid) totalAssets += tilesData[i].price * (tiles[i].level || 1); }
-            scoreHTML += `<div class="score-row"><div class="score-name"><div class="score-color color-${pid}"></div>${PLAYER_NAMES[pid]}</div><div>$${totalAssets}</div></div>`;
+            // 📈 即時資產看板 (現金 / 房產)
+            let propValue = 0;
+            for (let i = 0; i < 28; i++) { if (tiles[i] && tiles[i].owner === pid) propValue += tilesData[i].price * (tiles[i].level || 1); }
+            scoreHTML += `
+                <div style="margin-bottom:6px;">
+                    <div class="score-row"><div class="score-color color-${pid}"></div>${PLAYER_NAMES[pid]} ${pData.skipTurns>0 ? '⏸️' : ''}</div>
+                    <div class="score-assets">現金 $${pData.money} / 房產 $${propValue}</div>
+                </div>`;
         });
         
         document.getElementById('scoreboard-list').innerHTML = scoreHTML;
@@ -345,9 +436,9 @@
         const players = roomData.players || {};
         let isGameOver = false; let bankruptPlayer = null;
         
-        PLAYER_ORDER.forEach(pid => { if (players[pid] && players[pid].money <= 0) { isGameOver = true; bankruptPlayer = PLAYER_NAMES[pid]; } });
+        // 破產判定 (必須是現金為負，且法拍也救不回來時才會發生)
+        PLAYER_ORDER.forEach(pid => { if (players[pid] && players[pid].money < 0) { isGameOver = true; bankruptPlayer = PLAYER_NAMES[pid]; } });
 
-        // 🛑 第一時間由客戶端觸發 Game Over，寫入 Firebase 鎖定房間狀態
         if (isGameOver && roomData.status === 'playing') {
             update(ref(db, `rooms/${currentRoom}`), { status: 'game_over', bankruptPlayer: bankruptPlayer });
             return; 
@@ -389,13 +480,9 @@
         }
     }
 
-    // 專屬獨立的結算視窗函數
     function showGameOverModal() {
-        if (isShowingGameOver) return; // 避免重複渲染
-        isShowingGameOver = true;
-        
-        document.getElementById('turn-indicator').innerText = "🛑 遊戲結束！"; 
-        document.getElementById('btn-roll').disabled = true;
+        if (isShowingGameOver) return; isShowingGameOver = true;
+        document.getElementById('turn-indicator').innerText = "🛑 遊戲結束！"; document.getElementById('btn-roll').disabled = true;
         
         const players = roomData.players || {};
         let leaderboard = PLAYER_ORDER.map(pid => {
@@ -407,7 +494,7 @@
         
         let resultHTML = `<h3 style="color:#e74c3c; margin-top:0;">【${roomData.bankruptPlayer}】破產了！</h3><div style="text-align:left; margin-top:15px; background:#f8f9fa; padding:15px; border-radius:10px;">`;
         leaderboard.forEach((player, index) => { resultHTML += `<p style="margin:8px 0; font-weight:bold;">🏆 第 ${index+1} 名：${player.name} <br><span style="color:#27ae60; font-size:14px;">💰 總資產：$${player.assets}</span></p>`; });
-        resultHTML += `</div><button class="modal-btn btn-upgrade" style="margin-top:20px;" onclick="window.location.reload()">返回大廳</button>`;
+        resultHTML += `</div><button class="modal-btn btn-upgrade" style="margin-top:20px;" onclick="window.location.reload()">返回大廳重新開局</button>`;
         showSysModal("遊戲結算排行榜", resultHTML);
     }
 
@@ -421,30 +508,68 @@
     function processHumanMove(point) {
         const pData = roomData.players[MY_PLAYER_ID];
         const nextPos = (pData.position + point) % 28; 
-        let newMoney = pData.money; if (nextPos < pData.position) newMoney += 2000;
-        update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), { position: nextPos, money: newMoney });
-        setTimeout(() => { showPlayerActionModal(nextPos); }, point * 200 + 300);
+        let newMoney = pData.money; let newLaps = pData.laps || 0;
+        if (nextPos < pData.position) { newMoney += 2000; newLaps += 1; }
+        
+        update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), { position: nextPos, money: newMoney, laps: newLaps }).then(() => {
+            setTimeout(() => { showPlayerActionModal(nextPos); }, point * 200 + 300);
+        });
     }
 
     function processBotMove(botId, point) {
         const pData = roomData.players[botId];
         const nextPos = (pData.position + point) % 28;
-        let newMoney = pData.money; if (nextPos < pData.position) newMoney += 2000;
-        update(ref(db, `rooms/${currentRoom}/players/${botId}`), { position: nextPos, money: newMoney });
+        let newMoney = pData.money; let newLaps = pData.laps || 0;
+        if (nextPos < pData.position) { newMoney += 2000; newLaps += 1; }
+        
+        // 計算全場最高圈數以解鎖神明事件
+        let maxLaps = Math.max(...PLAYER_ORDER.map(p => roomData.players[p]?.laps || 0));
 
         setTimeout(() => {
             const tile = tilesData[nextPos]; const tileData = (roomData.tiles || {})[nextPos]; let decision = "結束回合。";
+            let updates = {}; updates[`players/${botId}/money`] = newMoney; updates[`players/${botId}/position`] = nextPos; updates[`players/${botId}/laps`] = newLaps;
+
             if (tile.price > 0) {
-                if (!tileData && newMoney >= tile.price && Math.random() > 0.3) { decision = `決定投資【${tile.title}】！花費 $${tile.price}`; newMoney -= tile.price; update(ref(db, `rooms/${currentRoom}/tiles/${nextPos}`), { owner: botId, level: 1 }); } 
-                else if (tileData && tileData.owner === botId && tileData.level < 3 && newMoney >= tile.price && Math.random() > 0.5) { decision = `決定升級【${tile.title}】！花費 $${tile.price}`; newMoney -= tile.price; update(ref(db, `rooms/${currentRoom}/tiles/${nextPos}`), { level: tileData.level + 1 }); } 
-                else if (tileData && tileData.owner !== botId) { const rent = tile.rent * (tileData.level || 1); decision = `踩到地雷！支付給 ${PLAYER_NAMES[tileData.owner]} $${rent}。`; newMoney -= rent; const oMoney = (roomData.players[tileData.owner]?.money || 0) + rent; set(ref(db, `rooms/${currentRoom}/players/${tileData.owner}/money`), oMoney); }
+                if (!tileData && newMoney >= tile.price && Math.random() > 0.3) { decision = `決定投資【${tile.title}】！花費 $${tile.price}`; updates[`players/${botId}/money`] -= tile.price; updates[`tiles/${nextPos}`] = { owner: botId, level: 1 }; } 
+                else if (tileData && tileData.owner === botId && tileData.level < 3 && newMoney >= tile.price && Math.random() > 0.5) { decision = `決定升級【${tile.title}】！花費 $${tile.price}`; updates[`players/${botId}/money`] -= tile.price; updates[`tiles/${nextPos}/level`] = tileData.level + 1; } 
+                else if (tileData && tileData.owner !== botId) { 
+                    const rent = tile.rent * (tileData.level || 1);
+                    let payRes = window.calcPayment(botId, rent);
+                    Object.assign(updates, payRes.updates);
+                    updates[`players/${tileData.owner}/money`] = (roomData.players[tileData.owner].money || 0) + rent;
+                    decision = `踩到地雷！支付給 ${PLAYER_NAMES[tileData.owner]} $${rent}。`;
+                    if (payRes.soldLogs.length > 0) decision += `\n(為籌錢已法拍變賣：${payRes.soldLogs.join(', ')})`;
+                }
             } else if(tile.category === 'random_event') {
-                const eventPool = LOCATION_EVENTS[tile.title] || DEFAULT_EVENTS; const ev = eventPool[Math.floor(Math.random() * eventPool.length)];
-                decision = `【突發事件】\n${ev.desc}`; newMoney = Math.max(0, newMoney + ev.money); if (ev.skip > 0) set(ref(db, `rooms/${currentRoom}/players/${botId}/skipTurns`), (pData.skipTurns || 0) + ev.skip); 
-            } else if(tile.category === 'corner_skip') { decision = tile.desc; set(ref(db, `rooms/${currentRoom}/players/${botId}/skipTurns`), (pData.skipTurns || 0) + 1); } 
+                let eventPool = [...(LOCATION_EVENTS[tile.title] || DEFAULT_EVENTS)];
+                if (maxLaps >= 2) eventPool = eventPool.concat(POWERFUL_EVENTS); // 超過兩圈加入強力事件
+                
+                const ev = eventPool[Math.floor(Math.random() * eventPool.length)];
+                decision = `【突發事件】\n${ev.desc}`;
+                
+                if (ev.money) {
+                    if (ev.money > 0) { updates[`players/${botId}/money`] += ev.money; } 
+                    else {
+                        let payRes = window.calcPayment(botId, Math.abs(ev.money));
+                        Object.assign(updates, payRes.updates);
+                        if (payRes.soldLogs.length > 0) decision += `\n(為籌錢已法拍變賣：${payRes.soldLogs.join(', ')})`;
+                    }
+                }
+                if (ev.skip > 0) updates[`players/${botId}/skipTurns`] = (pData.skipTurns || 0) + ev.skip;
+                if (ev.special === 'upgrade_random') {
+                    let tiles = roomData.tiles || {}; let myProps = Object.keys(tiles).filter(k => tiles[k].owner === botId && tiles[k].level < 3);
+                    if (myProps.length > 0) { let target = myProps[Math.floor(Math.random() * myProps.length)]; updates[`tiles/${target}/level`] = 3; decision += `\n(【${tilesData[target].title}】直升滿級！)`; }
+                }
+                if (ev.special === 'remove_random') {
+                    let tiles = roomData.tiles || {}; let myProps = Object.keys(tiles).filter(k => tiles[k].owner === botId);
+                    if (myProps.length > 0) { let target = myProps[Math.floor(Math.random() * myProps.length)]; updates[`tiles/${target}`] = null; decision += `\n(【${tilesData[target].title}】被強制徵收！)`; }
+                }
+            } else if(tile.category === 'corner_skip') { decision = tile.desc; updates[`players/${botId}/skipTurns`] = (pData.skipTurns || 0) + 1; } 
             else if(tile.category === 'start') { decision = tile.desc; }
 
-            set(ref(db, `rooms/${currentRoom}/players/${botId}/money`), newMoney); showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision); setTimeout(() => { window.endTurn(); closeModal(); }, 2500);
+            update(ref(db, `rooms/${currentRoom}`), updates).then(() => {
+                showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision); setTimeout(() => { window.endTurn(); closeModal(); }, 3500);
+            });
         }, point * 200 + 500);
     }
 
@@ -463,6 +588,7 @@
     function showPlayerActionModal(posIndex) {
         const tile = tilesData[posIndex]; const td = (roomData.tiles||{})[posIndex]; const pMoney = roomData.players[MY_PLAYER_ID].money;
         modalTitle.innerText = tile.title; modalOverlay.style.display = 'flex';
+        let maxLaps = Math.max(...PLAYER_ORDER.map(p => roomData.players[p]?.laps || 0));
         const endBtn = `<button class="modal-btn btn-close" onclick="window.endTurn(); window.closeModal()">結束回合</button>`;
 
         if (tile.price > 0) {
@@ -470,18 +596,51 @@
             if(tile.category==='food'){ actBuy="頂下餐館"; actUp="擴充包廂"; actRent="消費大餐"; } if(tile.category==='biz'){ actBuy="入股公司"; actUp="增資研發"; actRent="付授權費"; }
             if (!td) { modalDesc.innerText = `售價：$${tile.price} \n目前過路費：$${tile.rent}`; modalActions.innerHTML = `<button class="modal-btn btn-buy" onclick="window.buyLand(${posIndex}, ${tile.price})">${actBuy} ($${tile.price})</button>` + endBtn; } 
             else if (td.owner === MY_PLAYER_ID) { if (td.level < 3) { modalDesc.innerText = `這是你的地盤 (等級 ${td.level})\n升級可使過路費翻倍！`; modalActions.innerHTML = `<button class="modal-btn btn-upgrade" onclick="window.upgradeLand(${posIndex}, ${tile.price}, ${td.level})">${actUp} ($${tile.price})</button>` + endBtn; } else { modalDesc.innerText = `此處已達最高等級 ⭐⭐⭐\n躺著收錢吧！`; modalActions.innerHTML = endBtn; } } 
-            else { const rent = tile.rent * td.level; modalDesc.innerText = `這是 ${PLAYER_NAMES[td.owner]} 的地盤！`; modalActions.innerHTML = `<button class="modal-btn btn-pay" onclick="window.payRent('${td.owner}', ${rent})">${actRent} ($${rent})</button>`; }
+            else { const rent = tile.rent * td.level; modalDesc.innerText = `這是 ${PLAYER_NAMES[td.owner]} 的地盤！\n須支付 $${rent}`; modalActions.innerHTML = `<button class="modal-btn btn-pay" onclick="window.payRent('${td.owner}', ${rent})">${actRent} ($${rent})</button>`; }
         } else if(tile.category === 'random_event') {
-            const eventPool = LOCATION_EVENTS[tile.title] || DEFAULT_EVENTS; const ev = eventPool[Math.floor(Math.random() * eventPool.length)]; modalDesc.innerText = `【突發事件】\n${ev.desc}`;
-            let finalMoney = Math.max(0, pMoney + ev.money); if (finalMoney !== pMoney) set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/money`), finalMoney);
-            if (ev.skip > 0) set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/skipTurns`), (roomData.players[MY_PLAYER_ID].skipTurns || 0) + ev.skip); modalActions.innerHTML = endBtn;
+            let eventPool = [...(LOCATION_EVENTS[tile.title] || DEFAULT_EVENTS)];
+            if (maxLaps >= 2) eventPool = eventPool.concat(POWERFUL_EVENTS);
+            const ev = eventPool[Math.floor(Math.random() * eventPool.length)];
+            modalDesc.innerText = `【突發事件】\n${ev.desc}`;
+            
+            let updates = {}; let alertMsg = "";
+            if (ev.money) {
+                if (ev.money > 0) { updates[`players/${MY_PLAYER_ID}/money`] = pMoney + ev.money; } 
+                else {
+                    let payRes = window.calcPayment(MY_PLAYER_ID, Math.abs(ev.money));
+                    Object.assign(updates, payRes.updates);
+                    if (payRes.soldLogs.length > 0) alertMsg = `現金不足！已自動法拍：\n${payRes.soldLogs.join(', ')}`;
+                }
+            }
+            if (ev.skip > 0) updates[`players/${MY_PLAYER_ID}/skipTurns`] = (roomData.players[MY_PLAYER_ID].skipTurns || 0) + ev.skip;
+            if (ev.special === 'upgrade_random') {
+                let tiles = roomData.tiles || {}; let myProps = Object.keys(tiles).filter(k => tiles[k].owner === MY_PLAYER_ID && tiles[k].level < 3);
+                if (myProps.length > 0) { let target = myProps[Math.floor(Math.random() * myProps.length)]; updates[`tiles/${target}/level`] = 3; alertMsg = `【${tilesData[target].title}】已直升滿級！`; }
+            }
+            if (ev.special === 'remove_random') {
+                let tiles = roomData.tiles || {}; let myProps = Object.keys(tiles).filter(k => tiles[k].owner === MY_PLAYER_ID);
+                if (myProps.length > 0) { let target = myProps[Math.floor(Math.random() * myProps.length)]; updates[`tiles/${target}`] = null; alertMsg = `【${tilesData[target].title}】已被強制徵收！`; }
+            }
+            
+            if(Object.keys(updates).length > 0) { update(ref(db, `rooms/${currentRoom}`), updates).then(() => { if(alertMsg) setTimeout(()=>alert(alertMsg), 500); }); }
+            modalActions.innerHTML = endBtn;
         } else if(tile.category === 'corner_skip') { modalDesc.innerText = tile.desc; set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/skipTurns`), (roomData.players[MY_PLAYER_ID].skipTurns || 0) + 1); modalActions.innerHTML = endBtn; } 
         else if(tile.category === 'start') { modalDesc.innerText = tile.desc; modalActions.innerHTML = endBtn; }
     }
 
     window.buyLand = function(pos, price) { const pMoney = roomData.players[MY_PLAYER_ID].money; if(pMoney >= price) { update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price}); set(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { owner: MY_PLAYER_ID, level: 1 }); window.endTurn(); closeModal(); } else alert("資金不足！"); }
     window.upgradeLand = function(pos, price, currentLevel) { const pMoney = roomData.players[MY_PLAYER_ID].money; if(pMoney >= price) { update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price}); update(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { level: currentLevel + 1 }); window.endTurn(); closeModal(); } else alert("資金不足！"); }
-    window.payRent = function(ownerId, rent) { const pMoney = roomData.players[MY_PLAYER_ID].money; update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: Math.max(0, pMoney - rent)}); const oMoney = roomData.players[ownerId].money; set(ref(db, `rooms/${currentRoom}/players/${ownerId}/money`), oMoney + rent); window.endTurn(); closeModal(); }
+    window.payRent = function(ownerId, rent) { 
+        let payRes = window.calcPayment(MY_PLAYER_ID, rent);
+        let updates = payRes.updates;
+        updates[`players/${ownerId}/money`] = (roomData.players[ownerId].money || 0) + rent;
+        
+        update(ref(db, `rooms/${currentRoom}`), updates).then(() => {
+            if(payRes.soldLogs.length > 0) alert(`現金不足！已自動法拍：\n${payRes.soldLogs.join('\n')}`);
+            window.endTurn(); closeModal(); 
+        });
+    }
+    
     window.endTurn = function() { const nextTurn = ((roomData.turnIndex || 0) + 1) % 4; update(roomRef, { turnIndex: nextTurn, actionState: null }); }
     document.getElementById('btn-locate').addEventListener('click', () => { focusCameraOn(roomData.players[MY_PLAYER_ID].position); });
 
