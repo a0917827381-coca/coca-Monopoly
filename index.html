@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>渴口手沖大富翁 - 完整選角版</title>
+    <title>渴口手沖大富翁 - 即時戰報版</title>
     <style>
         :root { --tile-size: 180px; --map-size: calc(var(--tile-size) * 8); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #1a252f; font-family: 'Helvetica Neue', Arial, sans-serif; touch-action: none; }
@@ -11,67 +11,80 @@
         #viewport { width: 100vw; height: 100vh; position: relative; overflow: hidden; cursor: grab; display: none; }
         #viewport:active { cursor: grabbing; }
 
-        #map { width: var(--map-size); height: var(--map-size); position: absolute; top: 0; left: 0; background-color: #ecf0f1; transform-origin: top left; transition: transform 0.1s ease-out; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        #map { width: var(--map-size); height: var(--map-size); position: absolute; top: 0; left: 0; background-color: #ecf0f1; transform-origin: top left; transition: transform 0.1s ease-out; box-shadow: 20px 20px 60px rgba(0,0,0,0.8); border-radius: 20px; }
 
-        #map-center-decor { position: absolute; top: var(--tile-size); left: var(--tile-size); width: calc(var(--map-size) - var(--tile-size) * 2); height: calc(var(--map-size) - var(--tile-size) * 2); background-color: #fdfbf7; border: 4px dashed #bdc3c7; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.8; pointer-events: none; }
-        #map-center-decor h1 { font-size: 120px; color: #e67e22; margin: 0; text-shadow: 4px 4px 0px rgba(0,0,0,0.1); }
-        #map-center-decor h2 { font-size: 60px; color: #7f8c8d; margin: 0; }
+        #map-center-decor { position: absolute; top: var(--tile-size); left: var(--tile-size); width: calc(var(--map-size) - var(--tile-size) * 2); height: calc(var(--map-size) - var(--tile-size) * 2); background-color: #fdfbf7; border: 6px dashed #bdc3c7; box-sizing: border-box; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.8; pointer-events: none; }
+        #map-center-decor h1 { font-size: 120px; color: #e67e22; margin: 0; text-shadow: 6px 6px 0px rgba(0,0,0,0.1); letter-spacing: 5px;}
+        #map-center-decor h2 { font-size: 60px; color: #7f8c8d; margin: 0; text-shadow: 3px 3px 0px rgba(0,0,0,0.1);}
 
-        .tile { width: var(--tile-size); height: var(--tile-size); position: absolute; box-sizing: border-box; border: 3px solid #34495e; background-color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; }
-        .tile-id { font-size: 12px; color: #7f8c8d; position: absolute; top: 8px; left: 8px; }
-        .tile-title { font-size: 20px; font-weight: bold; color: #2c3e50; pointer-events: none; }
-        .tile-desc { font-size: 14px; color: #e74c3c; margin-top: 8px; pointer-events: none; }
+        .tile { width: var(--tile-size); height: var(--tile-size); position: absolute; box-sizing: border-box; background-color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; border-radius: 16px; border: 2px solid #34495e; border-bottom: 12px solid #2c3e50; border-right: 6px solid #2c3e50; box-shadow: 4px 8px 15px rgba(0,0,0,0.3); background: linear-gradient(135deg, #ffffff 0%, #f1f2f6 100%); }
+        .tile:active { transform: translateY(4px) translateX(2px); border-bottom-width: 8px; border-right-width: 4px; }
+        .tile-id { font-size: 14px; color: #7f8c8d; position: absolute; top: 10px; left: 10px; font-weight: bold;}
+        .tile-title { font-size: 22px; font-weight: bold; color: #2c3e50; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.8);}
+        .tile-desc { font-size: 15px; color: #e74c3c; margin-top: 8px; pointer-events: none; font-weight: bold;}
         .tile-owner { font-size: 14px; color: #27ae60; font-weight: bold; margin-top: 5px; height: 18px; pointer-events: none;}
         .tile-level { font-size: 14px; color: #f39c12; margin-top: 2px; height: 18px; pointer-events: none;}
         
-        .tile.corner { background-color: #f1c40f; } .tile.event { background-color: #9b59b6; color: white; } .tile.event .tile-title, .tile.event .tile-desc { color: white; }
+        .tile.corner { background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%); border-bottom-color: #d35400; border-right-color: #d35400;} 
+        .tile.event { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border-bottom-color: #732d91; border-right-color: #732d91;} 
+        .tile.event .tile-title, .tile.event .tile-desc { color: white; text-shadow: 1px 1px 0px rgba(0,0,0,0.3);}
 
-        /* 地圖上的角色標記 */
-        .character { width: 60px; height: 60px; position: absolute; border-radius: 50%; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: #fff; border: 3px solid #34495e; box-shadow: 0 4px 10px rgba(0,0,0,0.6); transition: left 0.2s linear, top 0.2s linear; z-index: 10; pointer-events: none; }
-        .money-bar { position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.8); color: #f1c40f; padding: 4px 8px; border-radius: 12px; font-size: 14px; font-weight: bold; white-space: nowrap; border: 1px solid #f39c12; }
+        .character { width: 70px; height: 70px; position: absolute; border-radius: 50%; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: #fff; border: 4px solid #34495e; filter: drop-shadow(8px 12px 6px rgba(0,0,0,0.5)); transition: left 0.2s linear, top 0.2s linear; z-index: 10; pointer-events: none; animation: floatChar 2s ease-in-out infinite; }
+        @keyframes floatChar { 0% { transform: translateY(0px); } 50% { transform: translateY(-6px); } 100% { transform: translateY(0px); } }
+
+        .money-bar { position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.85); color: #f1c40f; padding: 5px 10px; border-radius: 12px; font-size: 15px; font-weight: bold; white-space: nowrap; border: 2px solid #f39c12; box-shadow: 0 4px 6px rgba(0,0,0,0.5);}
         .money-bar.bankrupt { color: #e74c3c; border-color: #e74c3c; }
 
-        /* 全面替換為英文檔名，避免 404 錯誤 */
-        #char-cuibi { background-image: url('cuibi.png'); }
-        #char-bota { background-image: url('bota.png'); }
-        #char-tsui { background-image: url('tsui.png'); }
-        #char-kaka { background-image: url('kaka.png'); }
+        #char-cuibi { background-image: url('cuibi.png'); } #char-bota { background-image: url('bota.png'); } #char-tsui { background-image: url('tsui.png'); } #char-kaka { background-image: url('kaka.png'); }
 
-        /* 遊戲內 UI */
-        #ui-layer { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 100; }
-        button { padding: 15px 30px; font-size: 18px; font-weight: bold; color: white; background-color: #e67e22; border: none; border-radius: 30px; box-shadow: 0 6px 10px rgba(0,0,0,0.4); cursor: pointer; transition: all 0.2s; }
+        /* UI 層設定 */
+        #ui-layer { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 100; width: 90%; max-width: 400px; justify-content: center;}
+        button { padding: 15px 30px; font-size: 18px; font-weight: bold; color: white; background-color: #e67e22; border: none; border-radius: 30px; box-shadow: 0 6px 10px rgba(0,0,0,0.4); cursor: pointer; transition: all 0.2s; white-space: nowrap;}
         button:active { transform: translateY(3px); box-shadow: 0 3px 5px rgba(0,0,0,0.4); }
         button:disabled { background-color: #95a5a6; cursor: not-allowed; transform: none; box-shadow: none;}
         #btn-locate { background-color: #2980b9; }
-        #turn-indicator { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 10px 25px; border-radius: 20px; font-size: 18px; font-weight: bold; color: #2c3e50; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 100; display: none; }
+        
+        #turn-indicator { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 10px 25px; border-radius: 20px; font-size: 18px; font-weight: bold; color: #2c3e50; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 100; display: none; border: 2px solid #bdc3c7;}
 
-        /* 全新大廳與選角畫面 */
+        /* 🏆 即時戰報計分板 */
+        #scoreboard { position: fixed; top: 20px; left: 20px; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 100; border: 2px solid #bdc3c7; display: none; flex-direction: column; gap: 8px; pointer-events: none; min-width: 160px;}
+        #scoreboard-title { font-size: 14px; font-weight: bold; color: #7f8c8d; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-bottom: 5px; text-align: center;}
+        .score-row { display: flex; justify-content: space-between; font-size: 15px; font-weight: bold; color: #2c3e50; align-items: center;}
+        .score-name { display: flex; align-items: center; gap: 6px; }
+        .score-color { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #333;}
+        .color-cuibi { background: #e74c3c; } .color-bota { background: #3498db; } .color-kaka { background: #f1c40f; } .color-tsui { background: #2ecc71; }
+
+        /* 📱 手機版 RWD 響應式排版調整 */
+        @media (max-width: 768px) {
+            #scoreboard { top: 10px; left: 10px; padding: 10px; min-width: 130px;}
+            #scoreboard-title { font-size: 12px; }
+            .score-row { font-size: 13px; }
+            /* 將回合提示移到右上角，避免與計分板重疊 */
+            #turn-indicator { top: 10px; left: auto; right: 10px; transform: none; padding: 8px 15px; font-size: 14px; }
+            #ui-layer { bottom: 20px; gap: 10px; }
+            button { padding: 12px 20px; font-size: 16px; }
+        }
+
         #lobby-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #2c3e50; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; overflow-y: auto;}
         .lobby-box { background: white; color: #333; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 450px; width: 90%; margin: 20px 0;}
         .lobby-box h2 { margin-top: 0; color: #e67e22; font-size: 28px; border-bottom: 2px solid #ecf0f1; padding-bottom: 15px;}
-        
-        /* 選角網格 UI */
         .char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
         .char-card { background: #f8f9fa; border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px 10px; cursor: pointer; transition: all 0.2s; position: relative;}
         .char-card:hover { border-color: #e67e22; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(230, 126, 34, 0.2);}
         .char-card.taken { opacity: 0.5; cursor: not-allowed; border-color: #ecf0f1; transform: none; box-shadow: none;}
         .char-card.selected { border-color: #27ae60; background: #e8f8f5; box-shadow: 0 0 0 2px #27ae60; }
         .char-img-preview { width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; background-position: center; margin: 0 auto 10px; border-radius: 50%;}
-        
-        .preview-kaka { background-image: url('kaka.jpg'); mix-blend-mode: multiply; background-color: transparent; } 
-        .preview-cuibi { background-image: url('cuibi.png'); }
-        .preview-bota { background-image: url('bota.png'); }
-        .preview-tsui { background-image: url('tsui.png'); }
+        .preview-kaka { background-image: url('kaka.png'); } .preview-cuibi { background-image: url('cuibi.png'); } .preview-bota { background-image: url('bota.png'); } .preview-tsui { background-image: url('tsui.png'); }
+        .char-name { font-weight: bold; color: #2c3e50; font-size: 16px; margin-bottom: 5px;} .char-status { font-size: 12px; color: #7f8c8d; } .char-status.host { color: #8e44ad; font-weight: bold;} .char-status.me { color: #27ae60; font-weight: bold;}
 
-        .char-name { font-weight: bold; color: #2c3e50; font-size: 16px; margin-bottom: 5px;}
-        .char-status { font-size: 12px; color: #7f8c8d; }
-        .char-status.host { color: #8e44ad; font-weight: bold;}
-        .char-status.me { color: #27ae60; font-weight: bold;}
+        #dice-ritual-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 500; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        #dice-ritual-title { font-size: 32px; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .dice-cube { font-size: 100px; width: 150px; height: 150px; background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%); color: #2c3e50; display: flex; justify-content: center; align-items: center; border-radius: 25px; box-shadow: inset 0 0 20px rgba(0,0,0,0.2), 0 15px 30px rgba(0,0,0,0.6); border: 4px solid #bdc3c7; font-weight: bold; transition: transform 0.3s; }
+        @keyframes shakeDice { 0% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(20deg) scale(1.1); } 50% { transform: rotate(0deg) scale(1); } 75% { transform: rotate(-20deg) scale(1.1); } 100% { transform: rotate(0deg) scale(1); } }
 
-        /* 中央事件框 */
         #event-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 200; display: none; justify-content: center; align-items: center; }
-        #event-modal { background: white; width: 85%; max-width: 400px; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #modal-title { font-size: 26px; color: #2c3e50; font-weight: bold; margin-bottom: 10px; }
+        #event-modal { background: white; width: 85%; max-width: 400px; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.6); border: 4px solid #bdc3c7;}
+        #modal-title { font-size: 28px; color: #2c3e50; font-weight: bold; margin-bottom: 10px; }
         #modal-desc { font-size: 18px; color: #34495e; margin-bottom: 25px; line-height: 1.6; white-space: pre-wrap; font-weight: 500;}
         .modal-btn { width: 100%; margin-bottom: 12px; }
         .btn-buy { background-color: #27ae60; } .btn-upgrade { background-color: #f39c12; } .btn-pay { background-color: #c0392b; } .btn-close { background-color: #95a5a6; }
@@ -82,13 +95,11 @@
 <div id="lobby-screen">
     <div class="lobby-box">
         <h2>渴口大富翁</h2>
-        
         <div id="lobby-state-mode">
             <p style="margin-bottom: 20px; font-weight: bold; color:#34495e;">歡迎來到竹北高鐵特區！<br>請選擇遊玩模式</p>
             <button onclick="window.goStateSingle()" style="width:100%; margin-bottom:15px; background-color:#27ae60;">🤖 單機電腦 PK</button>
             <button onclick="window.goStateMultiInput()" style="width:100%; background-color:#8e44ad;">👥 真人連線對戰</button>
         </div>
-
         <div id="lobby-state-single" style="display:none;">
             <p style="font-weight: bold; color:#34495e;">請選擇你想扮演的角色：</p>
             <div class="char-grid">
@@ -98,47 +109,49 @@
                 <div class="char-card" onclick="window.startSingleGame('tsui')"><div class="char-img-preview preview-tsui"></div><div class="char-name">萃之助</div></div>
             </div>
             <button onclick="window.backToMode()" style="width:100%; background-color:#95a5a6; padding: 10px;">返回</button>
-            <p style="font-size:12px; color:#7f8c8d; margin-top:15px;">※ 選擇後直接開局，其餘角色將由電腦接管</p>
         </div>
-
         <div id="lobby-state-multi-input" style="display:none;">
             <p style="font-weight: bold; color:#34495e;">輸入連線代碼 (建立或加入)：</p>
             <input type="text" id="input-room-id" value="coca-main" style="width:80%; padding:10px; font-size:16px; margin-bottom:20px; border-radius:5px; border:1px solid #ccc; text-align:center;">
             <button onclick="window.joinMultiRoom()" style="width:100%; margin-bottom:15px; background-color:#2980b9;">進入等候室</button>
             <button onclick="window.backToMode()" style="width:100%; background-color:#95a5a6; padding: 10px;">返回</button>
         </div>
-
         <div id="lobby-state-multi-room" style="display:none;">
             <h3 style="margin-top:0; color:#8e44ad;">房間：<span id="display-room-id"></span></h3>
             <p style="font-size:14px; color:#e74c3c; font-weight:bold;">點擊空位選擇角色坐下</p>
-            
             <div class="char-grid" id="multi-char-grid"></div>
-            
             <button id="btn-start-multi" style="width:100%; margin-bottom:15px; background-color:#e67e22; display:none;" onclick="window.startMultiGame()">🚀 房主開始遊戲</button>
             <button onclick="window.leaveRoom()" style="width:100%; background-color:#95a5a6; padding: 10px;">離開房間</button>
-            <p style="font-size:12px; color:#7f8c8d; margin-top:15px;">※ 房主開始後，未滿的空位由電腦補齊</p>
         </div>
     </div>
 </div>
 
 <div id="turn-indicator"></div>
 
+<!-- 🏆 新增：全域即時戰報計分板 -->
+<div id="scoreboard">
+    <div id="scoreboard-title">📈 實時總資產 (現金+地產)</div>
+    <div id="scoreboard-list"></div>
+</div>
+
+<div id="dice-ritual-overlay">
+    <div id="dice-ritual-title">準備擲骰...</div>
+    <div class="dice-cube" id="dice-cube-display">🎲</div>
+</div>
+
 <div id="viewport">
     <div id="map">
-        <div id="map-center-decor">
-            <h1>COCA</h1>
-            <h2>大富翁</h2>
-        </div>
-        <div id="char-cuibi" class="character"><div class="money-bar" id="money-cuibi">$5000</div></div>
-        <div id="char-bota" class="character"><div class="money-bar" id="money-bota">$5000</div></div>
-        <div id="char-kaka" class="character"><div class="money-bar" id="money-kaka">$5000</div></div>
-        <div id="char-tsui" class="character"><div class="money-bar" id="money-tsui">$5000</div></div>
+        <div id="map-center-decor"><h1>COCA</h1><h2>大富翁</h2></div>
+        <div id="char-cuibi" class="character"><div class="money-bar" id="money-cuibi">$12000</div></div>
+        <div id="char-bota" class="character"><div class="money-bar" id="money-bota">$12000</div></div>
+        <div id="char-kaka" class="character"><div class="money-bar" id="money-kaka">$12000</div></div>
+        <div id="char-tsui" class="character"><div class="money-bar" id="money-tsui">$12000</div></div>
     </div>
 </div>
 
 <div id="ui-layer">
     <button id="btn-locate">📍 找主角</button>
-    <button id="btn-roll" onclick="window.rollDice()">🎲 擲骰子</button>
+    <button id="btn-roll" onclick="window.initiateRoll()">🎲 擲骰子</button>
 </div>
 
 <div id="event-modal-overlay"><div id="event-modal"><div id="modal-title"></div><div id="modal-desc"></div><div id="modal-actions"></div></div></div>
@@ -147,79 +160,43 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAjLdcRZMsmgHppZkM9SuV2ikvBA5thnRw",
-        authDomain: "coca-monopoly.firebaseapp.com",
-        databaseURL: "https://coca-monopoly-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "coca-monopoly"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const firebaseConfig = { apiKey: "AIzaSyAjLdcRZMsmgHppZkM9SuV2ikvBA5thnRw", authDomain: "coca-monopoly.firebaseapp.com", databaseURL: "https://coca-monopoly-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "coca-monopoly" };
+    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
 
     const PLAYER_ORDER = ['cuibi', 'bota', 'kaka', 'tsui'];
     const PLAYER_NAMES = { cuibi: '萃比老闆', bota: '波塔', kaka: '喀喀', tsui: '萃之助' };
     
-    let MY_PLAYER_ID = null; 
-    let currentRoom = null;
-    let roomRef = null;
-    let roomData = {};
-    let isGameRunning = false;
-    let currentLobbyState = 'mode'; 
+    let MY_PLAYER_ID = null; let currentRoom = null; let roomRef = null; let roomData = {}; let isGameRunning = false; let currentLobbyState = 'mode'; 
+    let localLastRollTime = 0; let isFirstLoad = true; let isShowingGameOver = false;
 
-    const mapEl = document.getElementById('map');
-    const tileSize = 180; 
+    const LOCATION_EVENTS = {
+        "水圳森林公園": [{ desc: "帶手沖咖啡去野餐大受歡迎！賺取 $1000。", money: 1000, skip: 0 }, { desc: "在草地上野餐被野狗搶走食物，重買花費 $300。", money: -300, skip: 0 }, { desc: "遇到來散步的熟客，聊得很開心，獲得小費 $500。", money: 500, skip: 0 }, { desc: "躺在草地上睡著了，錯過營業時間，暫停一回合。", money: 0, skip: 1 }],
+        "元大銀行": [{ desc: "00929 ETF 配息入帳！爽賺 $2000。", money: 2000, skip: 0 }, { desc: "台股大跌，融資面臨斷頭，慘賠 $1500。", money: -1500, skip: 0 }, { desc: "申辦企業青年貸款成功，獲得周轉金 $1000。", money: 1000, skip: 0 }, { desc: "遇到銀行系統當機，排隊處理浪費時間，暫停一回合。", money: 0, skip: 1 }],
+        "台大醫院": [{ desc: "定期健康檢查，自費項目花費 $800。", money: -800, skip: 0 }, { desc: "喝太多咖啡引發胃食道逆流，掛急診並休養一回合，花費 $500。", money: -500, skip: 1 }, { desc: "在醫院大廳巧遇醫生粉絲，霸氣包下 20 杯拿鐵，賺取 $1500。", money: 1500, skip: 0 }, { desc: "看錯門診時間，白跑一趟，退回掛號費 $200。", money: 200, skip: 0 }],
+        "人氣牙醫": [{ desc: "預約額滿，現場苦等洗牙，繳納掛號費 $200。", money: -200, skip: 0 }, { desc: "智齒突然發炎，緊急拔牙痛到無法工作，休養一回合，花費 $800。", money: -800, skip: 1 }, { desc: "被牙醫稱讚牙齒保養得很好，心情大好！", money: 0, skip: 0 }, { desc: "被推銷冷光美白套餐，腦波弱買了，花費 $1000。", money: -1000, skip: 0 }],
+        "地方稅務局": [{ desc: "申報營業稅，繳納稅金 $1500。", money: -1500, skip: 0 }, { desc: "發現多繳稅款，獲得退稅 $1000。", money: 1000, skip: 0 }, { desc: "稅務資料有誤，被留下來喝茶約談，暫停一回合。", money: 0, skip: 1 }, { desc: "順手幫稅務局人員沖了一杯精品咖啡，獲得車馬費 $500。", money: 500, skip: 0 }],
+        "遇到垃圾車": [{ desc: "給力給力給～成功追上垃圾車，丟完垃圾神清氣爽！", money: 0, skip: 0 }, { desc: "追垃圾車跑太快，口袋裡的錢不小心掉出來，損失 $500。", money: -500, skip: 0 }, { desc: "幫鄰居倒垃圾，鄰居阿姨熱情贊助 $300。", money: 300, skip: 0 }, { desc: "錯過垃圾車，提著臭垃圾回家鬱悶一回合。", money: 0, skip: 1 }],
+        "六家火車站": [{ desc: "搭乘台鐵區間車，巧遇高中同學，獲贈紅包 $500。", money: 500, skip: 0 }, { desc: "火車誤點，被迫坐在月台空等，暫停一回合。", money: 0, skip: 1 }, { desc: "在車站擺攤賣耳掛包，生意興隆賺取 $1200。", money: 1200, skip: 0 }, { desc: "買錯車票又弄丟錢包，倒霉損失 $800。", money: -800, skip: 0 }]
+    };
+    const DEFAULT_EVENTS = [{ desc: "平安無事的一天。", money: 0, skip: 0 }];
+
+    const mapEl = document.getElementById('map'); const tileSize = 180; 
     const tilesData = [
-        { title: "渴口手沖", desc: "回到溫暖的貨櫃屋\n老闆招待冰釀咖啡！", category: "event", type: "corner", price: 0 },
-        { title: "文興路綠園道", category: "estate", type: "", price: 1000, rent: 200 },
-        { title: "水圳森林公園", category: "event", type: "event", price: 0, desc: "舉辦草地野餐\n人氣大增，獲得 $500 贊助！" },
-        { title: "嘉豐五路", category: "estate", type: "", price: 1200, rent: 250 },
-        { title: "復興二路", category: "estate", type: "", price: 1000, rent: 200 },
-        { title: "六家五路", category: "food", type: "", price: 1500, rent: 300 },
-        { title: "隘口六街", category: "estate", type: "", price: 2000, rent: 400 },
-        { title: "六家火車站", category: "event", type: "corner", price: 0, desc: "搭乘火車\n下回合移動速度加倍！(暫無效果)" },
-        { title: "6+Plaza", category: "biz", type: "", price: 2500, rent: 500 },
-        { title: "元大銀行", category: "event", type: "event", price: 0, desc: "股市大爆發！\n全民普發股息 $1000！" },
-        { title: "暐順經貿", category: "biz", type: "", price: 3000, rent: 600 },
-        { title: "復興一路", category: "biz", type: "", price: 2800, rent: 550 },
-        { title: "嘉豐南路", category: "biz", type: "", price: 3200, rent: 650 },
-        { title: "微型工作室", category: "biz", type: "", price: 1500, rent: 300 },
-        { title: "竹北強風", category: "event", type: "corner", price: 0, desc: "九降風太強了！\n被吹退 3 步！" },
-        { title: "聯發科", category: "biz", type: "", price: 5000, rent: 1500 },
-        { title: "生醫一路", category: "biz", type: "", price: 2000, rent: 400 },
-        { title: "台大醫院", category: "event", type: "event", price: 0, desc: "健康檢查自費項目\n支付醫療費 $800！" },
-        { title: "筑波醫電", category: "biz", type: "", price: 2500, rent: 500 },
-        { title: "綠能中心", category: "biz", type: "", price: 2200, rent: 450 },
-        { title: "高鐵站前", category: "estate", type: "", price: 4000, rent: 1000 },
-        { title: "高鐵新竹站", category: "event", type: "corner", price: 0, desc: "錯過高鐵班次\n在車站喝咖啡休息一回合。" },
-        { title: "宏匯高鐵之心", category: "biz", type: "", price: 3500, rent: 800 },
-        { title: "人氣牙醫", category: "event", type: "event", price: 0, desc: "預約額滿，現場苦等\n繳納掛號費 $300。" },
-        { title: "光明六路", category: "estate", type: "", price: 1800, rent: 350 },
-        { title: "地方稅務局", category: "event", type: "event", price: 0, desc: "繳納房屋稅與地價稅\n大失血 $1500！" },
-        { title: "遇到垃圾車", category: "event", type: "event", price: 0, desc: "給力給力給～\n追垃圾車太累，掉落 $500。" },
-        { title: "站前公寓", category: "estate", type: "", price: 2800, rent: 550 }
+        { title: "渴口手沖", desc: "回到溫暖的貨櫃屋\n老闆招待冰釀咖啡！", category: "start", type: "corner", price: 0 }, { title: "文興路綠園道", category: "estate", type: "", price: 1000, rent: 200 }, { title: "水圳森林公園", category: "random_event", type: "event", price: 0, desc: "發生了突發事件..." }, { title: "嘉豐五路", category: "estate", type: "", price: 1200, rent: 250 }, { title: "復興二路", category: "estate", type: "", price: 1000, rent: 200 }, { title: "六家五路", category: "food", type: "", price: 1500, rent: 300 }, { title: "隘口六街", category: "estate", type: "", price: 2000, rent: 400 }, { title: "六家火車站", category: "random_event", type: "corner", price: 0, desc: "發生了突發事件..." }, { title: "6+Plaza", category: "biz", type: "", price: 2500, rent: 500 }, { title: "元大銀行", category: "random_event", type: "event", price: 0, desc: "發生了突發事件..." }, { title: "暐順經貿", category: "biz", type: "", price: 3000, rent: 600 }, { title: "復興一路", category: "biz", type: "", price: 2800, rent: 550 }, { title: "嘉豐南路", category: "biz", type: "", price: 3200, rent: 650 }, { title: "微型工作室", category: "biz", type: "", price: 1500, rent: 300 }, { title: "竹北強風", category: "corner_skip", type: "corner", price: 0, desc: "九降風太強了！\n被迫原地休息一回合！" }, { title: "聯發科", category: "biz", type: "", price: 5000, rent: 1500 }, { title: "生醫一路", category: "biz", type: "", price: 2000, rent: 400 }, { title: "台大醫院", category: "random_event", type: "event", price: 0, desc: "發生了突發事件..." }, { title: "筑波醫電", category: "biz", type: "", price: 2500, rent: 500 }, { title: "綠能中心", category: "biz", type: "", price: 2200, rent: 450 }, { title: "高鐵站前", category: "estate", type: "", price: 4000, rent: 1000 }, { title: "高鐵新竹站", category: "corner_skip", type: "corner", price: 0, desc: "錯過高鐵班次\n在車站喝咖啡休息一回合。" }, { title: "宏匯高鐵之心", category: "biz", type: "", price: 3500, rent: 800 }, { title: "人氣牙醫", category: "random_event", type: "event", price: 0, desc: "發生了突發事件..." }, { title: "光明六路", category: "estate", type: "", price: 1800, rent: 350 }, { title: "地方稅務局", category: "random_event", type: "event", price: 0, desc: "發生了突發事件..." }, { title: "遇到垃圾車", category: "random_event", type: "event", price: 0, desc: "發生了突發事件..." }, { title: "站前公寓", category: "estate", type: "", price: 2800, rent: 550 }
     ];
 
     function getTilePosition(index) {
-        let x = 0, y = 0;
-        if (index < 8) { x = index; y = 0; } else if (index < 14) { x = 7; y = index - 7; } 
-        else if (index < 22) { x = 21 - index; y = 7; } else { x = 0; y = 28 - index; }
-        return { x: x * tileSize, y: y * tileSize };
+        let x = 0, y = 0; if (index < 8) { x = index; y = 0; } else if (index < 14) { x = 7; y = index - 7; } else if (index < 22) { x = 21 - index; y = 7; } else { x = 0; y = 28 - index; } return { x: x * tileSize, y: y * tileSize };
     }
 
     tilesData.forEach((tile, index) => {
-        const div = document.createElement('div');
-        div.className = `tile ${tile.type || tile.category}`; div.id = `tile-${index}`;
-        div.setAttribute('onclick', `window.showTileInfo(${index})`);
-        const pos = getTilePosition(index);
-        div.style.left = pos.x + 'px'; div.style.top = pos.y + 'px';
+        const div = document.createElement('div'); div.className = `tile ${tile.type || tile.category}`; div.id = `tile-${index}`; div.setAttribute('onclick', `window.showTileInfo(${index})`);
+        const pos = getTilePosition(index); div.style.left = pos.x + 'px'; div.style.top = pos.y + 'px';
         div.innerHTML = `<div class="tile-id">${index}</div><div class="tile-title">${tile.title}</div><div class="tile-desc">${tile.price ? '$'+tile.price : ''}</div><div class="tile-owner" id="owner-${index}"></div><div class="tile-level" id="level-${index}"></div>`;
         mapEl.appendChild(div);
     });
 
-    // 拖曳邏輯
-    const viewport = document.getElementById('viewport');
-    let isDragging = false, startX, startY, initialTx, initialTy, currentTx = 0, currentTy = 0;
-    const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+    const viewport = document.getElementById('viewport'); let isDragging = false, startX, startY, initialTx, initialTy, currentTx = 0, currentTy = 0; const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
     viewport.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX; startY = e.clientY; initialTx = currentTx; initialTy = currentTy; mapEl.style.transition = 'none'; });
     window.addEventListener('mousemove', e => { if (!isDragging) return; const maxW = viewport.clientWidth - tileSize*8, maxH = viewport.clientHeight - tileSize*8; currentTx = clamp(initialTx + e.clientX - startX, maxW, 0); currentTy = clamp(initialTy + e.clientY - startY, maxH, 0); mapEl.style.transform = `translate(${currentTx}px, ${currentTy}px)`; });
     window.addEventListener('mouseup', () => { isDragging = false; mapEl.style.transition = 'transform 0.2s ease-out'; });
@@ -233,230 +210,147 @@
         mapEl.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'; mapEl.style.transform = `translate(${currentTx}px, ${currentTy}px)`;
     }
 
-    // ==========================================
-    // 大廳狀態機與選角邏輯 (修復 Firebase Set Bug)
-    // ==========================================
-    
     function switchLobbyState(state) {
-        currentLobbyState = state;
-        document.getElementById('lobby-state-mode').style.display = state === 'mode' ? 'block' : 'none';
-        document.getElementById('lobby-state-single').style.display = state === 'single' ? 'block' : 'none';
-        document.getElementById('lobby-state-multi-input').style.display = state === 'multi-input' ? 'block' : 'none';
-        document.getElementById('lobby-state-multi-room').style.display = state === 'multi-room' ? 'block' : 'none';
+        currentLobbyState = state; document.getElementById('lobby-state-mode').style.display = state === 'mode' ? 'block' : 'none'; document.getElementById('lobby-state-single').style.display = state === 'single' ? 'block' : 'none'; document.getElementById('lobby-state-multi-input').style.display = state === 'multi-input' ? 'block' : 'none'; document.getElementById('lobby-state-multi-room').style.display = state === 'multi-room' ? 'block' : 'none';
     }
 
-    window.goStateSingle = () => switchLobbyState('single');
-    window.goStateMultiInput = () => switchLobbyState('multi-input');
-    window.backToMode = () => switchLobbyState('mode');
+    window.goStateSingle = () => switchLobbyState('single'); window.goStateMultiInput = () => switchLobbyState('multi-input'); window.backToMode = () => switchLobbyState('mode');
 
-    // 【單機模式修復】使用巢狀 JSON 確保 set() 不會因斜線路徑報錯
     window.startSingleGame = function(selectedPid) {
-        currentRoom = 'bot-' + Math.floor(Math.random() * 100000);
-        MY_PLAYER_ID = selectedPid;
-        roomRef = ref(db, 'rooms/' + currentRoom);
-        
-        const roomInitialData = {
-            status: 'playing',
-            turnIndex: 0,
-            hostId: selectedPid,
-            players: {}
-        };
-        
-        PLAYER_ORDER.forEach(pid => {
-            roomInitialData.players[pid] = { money: 5000, position: 0, isBot: (pid !== selectedPid) };
-        });
-        
-        set(roomRef, roomInitialData).then(() => {
-            listenToRoom(); 
-        }).catch(err => {
-            console.error("建立房間失敗:", err);
-            alert("遊戲建立失敗，請稍後再試！");
-        });
+        currentRoom = 'bot-' + Math.floor(Math.random() * 100000); MY_PLAYER_ID = selectedPid; roomRef = ref(db, 'rooms/' + currentRoom);
+        const roomInitialData = { status: 'playing', turnIndex: 0, hostId: selectedPid, players: {} };
+        PLAYER_ORDER.forEach(pid => { roomInitialData.players[pid] = { money: 12000, position: 0, isBot: (pid !== selectedPid), skipTurns: 0 }; });
+        set(roomRef, roomInitialData).then(() => { listenToRoom(); }).catch(err => alert("建立失敗"));
     }
 
     window.joinMultiRoom = function() {
-        const inputId = document.getElementById('input-room-id').value;
-        if (!inputId) return;
-        currentRoom = inputId;
-        document.getElementById('display-room-id').innerText = currentRoom;
-        roomRef = ref(db, 'rooms/' + currentRoom);
-        MY_PLAYER_ID = null; 
-        
-        get(roomRef).then((snap) => {
-            if(!snap.exists() || !snap.val().status) {
-                set(roomRef, { status: 'waiting' });
-            }
-            switchLobbyState('multi-room');
-            listenToRoom();
-        });
+        const inputId = document.getElementById('input-room-id').value; if (!inputId) return;
+        currentRoom = inputId; document.getElementById('display-room-id').innerText = currentRoom; roomRef = ref(db, 'rooms/' + currentRoom); MY_PLAYER_ID = null; 
+        get(roomRef).then((snap) => { if(!snap.exists() || !snap.val().status) set(roomRef, { status: 'waiting' }); switchLobbyState('multi-room'); listenToRoom(); });
     }
 
     window.leaveRoom = function() {
-        if (MY_PLAYER_ID) {
-            remove(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`));
-            if(roomData.hostId === MY_PLAYER_ID) set(ref(db, `rooms/${currentRoom}/hostId`), null);
-            MY_PLAYER_ID = null;
-        }
-        roomRef = null;
-        switchLobbyState('mode');
+        if (MY_PLAYER_ID) { remove(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`)); if(roomData.hostId === MY_PLAYER_ID) set(ref(db, `rooms/${currentRoom}/hostId`), null); MY_PLAYER_ID = null; }
+        roomRef = null; switchLobbyState('mode');
     }
 
     window.claimMultiSlot = function(targetPid) {
         const players = roomData.players || {};
-        if (players[targetPid] && !players[targetPid].isBot) {
-            if (targetPid === MY_PLAYER_ID) return; 
-            alert("這個角色已經被其他玩家選走了！"); return;
-        }
-        if (MY_PLAYER_ID && MY_PLAYER_ID !== targetPid) {
-            remove(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`));
-            if(roomData.hostId === MY_PLAYER_ID) set(ref(db, `rooms/${currentRoom}/hostId`), null);
-        }
-        MY_PLAYER_ID = targetPid;
-        set(ref(db, `rooms/${currentRoom}/players/${targetPid}`), { money: 5000, position: 0, isBot: false });
+        if (players[targetPid] && !players[targetPid].isBot) { if (targetPid === MY_PLAYER_ID) return; alert("此角色已被選走！"); return; }
+        if (MY_PLAYER_ID && MY_PLAYER_ID !== targetPid) { remove(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`)); if(roomData.hostId === MY_PLAYER_ID) set(ref(db, `rooms/${currentRoom}/hostId`), null); }
+        MY_PLAYER_ID = targetPid; set(ref(db, `rooms/${currentRoom}/players/${targetPid}`), { money: 12000, position: 0, isBot: false, skipTurns: 0 });
         if (!roomData.hostId) set(ref(db, `rooms/${currentRoom}/hostId`), targetPid);
     }
 
     function renderMultiLobby() {
-        const players = roomData.players || {};
-        const hostId = roomData.hostId;
-        let gridHTML = '';
-
+        const players = roomData.players || {}; const hostId = roomData.hostId; let gridHTML = '';
         PLAYER_ORDER.forEach(pid => {
-            const isTakenByHuman = players[pid] && !players[pid].isBot;
-            const isMe = (pid === MY_PLAYER_ID);
-            const isHost = (pid === hostId);
-            
+            const isTakenByHuman = players[pid] && !players[pid].isBot; const isMe = (pid === MY_PLAYER_ID); const isHost = (pid === hostId);
             let cardClass = 'char-card'; let statusText = '【 空位 】點擊扮演'; let statusClass = '';
-
-            if (isTakenByHuman) {
-                if (isMe) {
-                    cardClass += ' selected';
-                    statusText = isHost ? '這是你 (房主)' : '這是你 (已準備)';
-                    statusClass = isHost ? 'host' : 'me';
-                } else {
-                    cardClass += ' taken';
-                    statusText = isHost ? '其他玩家 (房主)' : '其他玩家已選擇';
-                }
-            }
-
+            if (isTakenByHuman) { if (isMe) { cardClass += ' selected'; statusText = isHost ? '這是你 (房主)' : '這是你 (已準備)'; statusClass = isHost ? 'host' : 'me'; } else { cardClass += ' taken'; statusText = isHost ? '其他玩家 (房主)' : '其他玩家已選擇'; } }
             gridHTML += `<div class="${cardClass}" onclick="window.claimMultiSlot('${pid}')"><div class="char-img-preview preview-${pid}"></div><div class="char-name">${PLAYER_NAMES[pid]}</div><div class="char-status ${statusClass}">${statusText}</div></div>`;
         });
-
         document.getElementById('multi-char-grid').innerHTML = gridHTML;
-        const btnStart = document.getElementById('btn-start-multi');
-        if (MY_PLAYER_ID && MY_PLAYER_ID === hostId) btnStart.style.display = 'block'; else btnStart.style.display = 'none';
+        const btnStart = document.getElementById('btn-start-multi'); if (MY_PLAYER_ID && MY_PLAYER_ID === hostId) btnStart.style.display = 'block'; else btnStart.style.display = 'none';
     }
 
     window.startMultiGame = function() {
         const updates = { status: 'playing', turnIndex: 0 };
-        PLAYER_ORDER.forEach(pid => {
-            if (!roomData.players || !roomData.players[pid] || roomData.players[pid].isBot) {
-                updates[`players/${pid}/money`] = 5000;
-                updates[`players/${pid}/position`] = 0;
-                updates[`players/${pid}/isBot`] = true;
-            }
-        });
+        PLAYER_ORDER.forEach(pid => { if (!roomData.players || !roomData.players[pid] || roomData.players[pid].isBot) { updates[`players/${pid}/money`] = 12000; updates[`players/${pid}/position`] = 0; updates[`players/${pid}/isBot`] = true; updates[`players/${pid}/skipTurns`] = 0; } });
         update(roomRef, updates);
+    }
+
+    function playDiceRitual(playerId, point, callback) {
+        const overlay = document.getElementById('dice-ritual-overlay'); const title = document.getElementById('dice-ritual-title'); const diceDisplay = document.getElementById('dice-cube-display');
+        const pPos = (roomData.players[playerId]?.position) || 0; focusCameraOn(pPos);
+        title.innerText = `【${PLAYER_NAMES[playerId]}】擲骰子中...`; overlay.style.display = 'flex'; diceDisplay.style.animation = 'shakeDice 0.3s infinite';
+        let shuffle = setInterval(() => { diceDisplay.innerText = Math.floor(Math.random() * 6) + 1; }, 80);
+        setTimeout(() => {
+            clearInterval(shuffle); diceDisplay.style.animation = 'none'; diceDisplay.innerText = point; diceDisplay.style.transform = 'scale(1.3)'; title.innerText = `🎲 擲出了 ${point} 點！`;
+            setTimeout(() => { overlay.style.display = 'none'; diceDisplay.style.transform = 'scale(1)'; if(callback) callback(); }, 1200); 
+        }, 1500); 
     }
 
     function listenToRoom() {
         onValue(roomRef, (snapshot) => {
             roomData = snapshot.val() || {};
-            if (!roomData.status || roomData.status === 'waiting') {
-                if(currentLobbyState === 'multi-room') renderMultiLobby();
-                return;
+            
+            if (isFirstLoad) { if (roomData.lastRoll) { localLastRollTime = roomData.lastRoll.time; } isFirstLoad = false; }
+
+            if (!roomData.status || roomData.status === 'waiting') { if(currentLobbyState === 'multi-room') renderMultiLobby(); return; }
+            
+            // 🛑 偵測到遊戲結束狀態，強制凍結一切並顯示排行榜
+            if (roomData.status === 'game_over') {
+                showGameOverModal();
+                return; 
             }
+
             if (roomData.status === 'playing' && !isGameRunning) {
-                document.getElementById('lobby-screen').style.display = 'none';
-                document.getElementById('viewport').style.display = 'block';
-                document.getElementById('ui-layer').style.display = 'flex';
-                document.getElementById('turn-indicator').style.display = 'block';
+                document.getElementById('lobby-screen').style.display = 'none'; document.getElementById('viewport').style.display = 'block';
+                document.getElementById('ui-layer').style.display = 'flex'; document.getElementById('turn-indicator').style.display = 'block';
+                document.getElementById('scoreboard').style.display = 'flex'; // 顯示計分板
                 isGameRunning = true;
             }
-            updateBoardVisuals();
-            handleTurnLogic();
+            
+            if (roomData.lastRoll && roomData.lastRoll.time > localLastRollTime) {
+                localLastRollTime = roomData.lastRoll.time;
+                playDiceRitual(roomData.lastRoll.player, roomData.lastRoll.point, () => {
+                    if (roomData.lastRoll.player === MY_PLAYER_ID) { processHumanMove(roomData.lastRoll.point); } else if (roomData.players[roomData.lastRoll.player].isBot && MY_PLAYER_ID === roomData.hostId) { processBotMove(roomData.lastRoll.player, roomData.lastRoll.point); }
+                });
+                return; 
+            }
+
+            updateBoardVisuals(); handleTurnLogic();
         });
     }
 
     let knownPositions = { cuibi: 0, bota: 0, kaka: 0, tsui: 0 };
     function updateBoardVisuals() {
-        const tiles = roomData.tiles || {};
-        const players = roomData.players || {};
-
+        const tiles = roomData.tiles || {}; const players = roomData.players || {};
+        let scoreHTML = '';
+        
         for (let i = 0; i < 28; i++) {
-            if (tiles[i]) {
-                document.getElementById(`owner-${i}`).innerText = PLAYER_NAMES[tiles[i].owner];
-                document.getElementById(`level-${i}`).innerText = '⭐'.repeat(tiles[i].level || 1);
-            } else {
-                document.getElementById(`owner-${i}`).innerText = '';
-                document.getElementById(`level-${i}`).innerText = '';
-            }
+            if (tiles[i]) { document.getElementById(`owner-${i}`).innerText = PLAYER_NAMES[tiles[i].owner]; document.getElementById(`level-${i}`).innerText = '⭐'.repeat(tiles[i].level || 1); } 
+            else { document.getElementById(`owner-${i}`).innerText = ''; document.getElementById(`level-${i}`).innerText = ''; }
         }
 
         PLAYER_ORDER.forEach(pid => {
-            const pData = players[pid];
-            if(!pData) return;
+            const pData = players[pid]; if(!pData) return;
             const moneyBar = document.getElementById(`money-${pid}`);
             moneyBar.innerText = `$${pData.money}`;
-            if (pData.money <= 0) moneyBar.classList.add('bankrupt');
-            else moneyBar.classList.remove('bankrupt');
+            if (pData.money <= 0) moneyBar.classList.add('bankrupt'); else moneyBar.classList.remove('bankrupt');
 
             if (knownPositions[pid] !== pData.position) {
-                walkPath(pid, knownPositions[pid], pData.position);
-                knownPositions[pid] = pData.position;
-            } else {
-                setCharPosition(pid, pData.position);
-            }
+                walkPath(pid, knownPositions[pid], pData.position); knownPositions[pid] = pData.position;
+            } else { setCharPosition(pid, pData.position); }
+
+            // 📈 計算即時戰報資產
+            let totalAssets = pData.money || 0;
+            for (let i = 0; i < 28; i++) { if (tiles[i] && tiles[i].owner === pid) totalAssets += tilesData[i].price * (tiles[i].level || 1); }
+            scoreHTML += `<div class="score-row"><div class="score-name"><div class="score-color color-${pid}"></div>${PLAYER_NAMES[pid]}</div><div>$${totalAssets}</div></div>`;
         });
+        
+        document.getElementById('scoreboard-list').innerHTML = scoreHTML;
     }
 
-    async function walkPath(pid, start, end) {
-        let current = start;
-        while (current !== end) {
-            current = (current + 1) % 28;
-            setCharPosition(pid, current);
-            await new Promise(r => setTimeout(r, 200)); 
-        }
-    }
-
+    async function walkPath(pid, start, end) { let current = start; while (current !== end) { current = (current + 1) % 28; setCharPosition(pid, current); await new Promise(r => setTimeout(r, 200)); } }
     function setCharPosition(pid, posIndex) {
-        const targetCoords = getTilePosition(posIndex);
-        const el = document.getElementById(`char-${pid}`);
-        let offsetX = 20, offsetY = 20;
-        if(pid==='bota') offsetX = 95;
-        if(pid==='kaka') offsetY = 95;
-        if(pid==='tsui') { offsetX = 95; offsetY = 95; }
-        el.style.left = (targetCoords.x + offsetX) + 'px';
-        el.style.top = (targetCoords.y + offsetY) + 'px';
+        const targetCoords = getTilePosition(posIndex); const el = document.getElementById(`char-${pid}`);
+        let offsetX = 25, offsetY = 15;
+        if(pid==='bota') offsetX = 95; if(pid==='kaka') offsetY = 85; if(pid==='tsui') { offsetX = 95; offsetY = 85; }
+        el.style.left = (targetCoords.x + offsetX) + 'px'; el.style.top = (targetCoords.y + offsetY) + 'px';
     }
 
     function handleTurnLogic() {
         const players = roomData.players || {};
         let isGameOver = false; let bankruptPlayer = null;
         
-        PLAYER_ORDER.forEach(pid => {
-            if (players[pid] && players[pid].money <= 0) { isGameOver = true; bankruptPlayer = PLAYER_NAMES[pid]; }
-        });
+        PLAYER_ORDER.forEach(pid => { if (players[pid] && players[pid].money <= 0) { isGameOver = true; bankruptPlayer = PLAYER_NAMES[pid]; } });
 
+        // 🛑 第一時間由客戶端觸發 Game Over，寫入 Firebase 鎖定房間狀態
         if (isGameOver && roomData.status === 'playing') {
-            document.getElementById('turn-indicator').innerText = "🛑 遊戲結束！";
-            document.getElementById('btn-roll').disabled = true;
-            
-            let leaderboard = PLAYER_ORDER.map(pid => {
-                let totalAssets = players[pid]?.money || 0;
-                const tiles = roomData.tiles || {};
-                for (let i = 0; i < 28; i++) {
-                    if (tiles[i] && tiles[i].owner === pid) totalAssets += tilesData[i].price * (tiles[i].level || 1);
-                }
-                return { name: PLAYER_NAMES[pid], assets: totalAssets };
-            });
-            leaderboard.sort((a, b) => b.assets - a.assets);
-            
-            let resultHTML = `<h3 style="color:#e74c3c; margin-top:0;">【${bankruptPlayer}】破產了！</h3><div style="text-align:left; margin-top:15px; background:#f8f9fa; padding:15px; border-radius:10px;">`;
-            leaderboard.forEach((player, index) => { resultHTML += `<p style="margin:8px 0; font-weight:bold;">🏆 第 ${index+1} 名：${player.name} <br><span style="color:#27ae60; font-size:14px;">💰 總資產：$${player.assets}</span></p>`; });
-            resultHTML += `</div><button class="modal-btn btn-upgrade" style="margin-top:20px;" onclick="window.location.reload()">返回大廳</button>`;
-            
-            showSysModal("遊戲結算排行榜", resultHTML); return; 
+            update(ref(db, `rooms/${currentRoom}`), { status: 'game_over', bankruptPlayer: bankruptPlayer });
+            return; 
         }
 
         const turnIndex = roomData.turnIndex || 0;
@@ -466,54 +360,92 @@
         document.getElementById('turn-indicator').innerText = `現在是【${PLAYER_NAMES[activePlayer]}】的回合`;
         const btnRoll = document.getElementById('btn-roll');
         
+        if (pData.skipTurns > 0) {
+            btnRoll.disabled = true;
+            if (activePlayer === MY_PLAYER_ID && !roomData.actionState) {
+                update(ref(db, `rooms/${currentRoom}`), { actionState: 'skipping' });
+                showSysModal("暫停一回合", "你目前處於休息狀態，跳過此回合！");
+                setTimeout(() => { set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/skipTurns`), pData.skipTurns - 1); window.endTurn(); closeModal(); }, 2500);
+            } else if (pData.isBot && MY_PLAYER_ID === roomData.hostId && !roomData.actionState) {
+                update(ref(db, `rooms/${currentRoom}`), { actionState: 'skipping' });
+                showSysModal(`【${PLAYER_NAMES[activePlayer]}】狀態`, "因事件影響，原地休息一回合！");
+                setTimeout(() => { set(ref(db, `rooms/${currentRoom}/players/${activePlayer}/skipTurns`), pData.skipTurns - 1); window.endTurn(); closeModal(); }, 2500);
+            }
+            return; 
+        }
+
         if (activePlayer === MY_PLAYER_ID) {
             btnRoll.disabled = false; btnRoll.innerText = "🎲 換你擲骰子"; focusCameraOn(pData.position);
         } else {
             btnRoll.disabled = true; btnRoll.innerText = `等待 ${PLAYER_NAMES[activePlayer]}...`; focusCameraOn(pData.position);
         }
 
-        if (pData.isBot && MY_PLAYER_ID === roomData.hostId && !roomData.botActionState) {
-            update(ref(db, `rooms/${currentRoom}`), {botActionState: 'rolling'});
-            setTimeout(() => { executeBotTurn(activePlayer, pData); }, 1500);
+        if (pData.isBot && MY_PLAYER_ID === roomData.hostId && !roomData.actionState) {
+            update(ref(db, `rooms/${currentRoom}`), { actionState: 'rolling' });
+            setTimeout(() => {
+                const dice = Math.floor(Math.random() * 6) + 1;
+                update(ref(db, `rooms/${currentRoom}/lastRoll`), { player: activePlayer, point: dice, time: Date.now() });
+            }, 1000);
         }
     }
 
-    async function executeBotTurn(botId, pData) {
-        const dice = Math.floor(Math.random() * 6) + 1;
-        showSysModal(`【${PLAYER_NAMES[botId]}】行動`, `🎲 擲出了 ${dice} 點！\n移動中...`);
+    // 專屬獨立的結算視窗函數
+    function showGameOverModal() {
+        if (isShowingGameOver) return; // 避免重複渲染
+        isShowingGameOver = true;
         
-        const nextPos = (pData.position + dice) % 28;
-        let newMoney = pData.money;
-        if (nextPos < pData.position) newMoney += 2000;
+        document.getElementById('turn-indicator').innerText = "🛑 遊戲結束！"; 
+        document.getElementById('btn-roll').disabled = true;
+        
+        const players = roomData.players || {};
+        let leaderboard = PLAYER_ORDER.map(pid => {
+            let totalAssets = players[pid]?.money || 0; const tiles = roomData.tiles || {};
+            for (let i = 0; i < 28; i++) { if (tiles[i] && tiles[i].owner === pid) totalAssets += tilesData[i].price * (tiles[i].level || 1); }
+            return { name: PLAYER_NAMES[pid], assets: totalAssets };
+        });
+        leaderboard.sort((a, b) => b.assets - a.assets);
+        
+        let resultHTML = `<h3 style="color:#e74c3c; margin-top:0;">【${roomData.bankruptPlayer}】破產了！</h3><div style="text-align:left; margin-top:15px; background:#f8f9fa; padding:15px; border-radius:10px;">`;
+        leaderboard.forEach((player, index) => { resultHTML += `<p style="margin:8px 0; font-weight:bold;">🏆 第 ${index+1} 名：${player.name} <br><span style="color:#27ae60; font-size:14px;">💰 總資產：$${player.assets}</span></p>`; });
+        resultHTML += `</div><button class="modal-btn btn-upgrade" style="margin-top:20px;" onclick="window.location.reload()">返回大廳</button>`;
+        showSysModal("遊戲結算排行榜", resultHTML);
+    }
 
+    window.initiateRoll = function() {
+        document.getElementById('btn-roll').disabled = true;
+        update(ref(db, `rooms/${currentRoom}`), { actionState: 'rolling' });
+        const dice = Math.floor(Math.random() * 6) + 1;
+        update(ref(db, `rooms/${currentRoom}/lastRoll`), { player: MY_PLAYER_ID, point: dice, time: Date.now() });
+    };
+
+    function processHumanMove(point) {
+        const pData = roomData.players[MY_PLAYER_ID];
+        const nextPos = (pData.position + point) % 28; 
+        let newMoney = pData.money; if (nextPos < pData.position) newMoney += 2000;
+        update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), { position: nextPos, money: newMoney });
+        setTimeout(() => { showPlayerActionModal(nextPos); }, point * 200 + 300);
+    }
+
+    function processBotMove(botId, point) {
+        const pData = roomData.players[botId];
+        const nextPos = (pData.position + point) % 28;
+        let newMoney = pData.money; if (nextPos < pData.position) newMoney += 2000;
         update(ref(db, `rooms/${currentRoom}/players/${botId}`), { position: nextPos, money: newMoney });
 
         setTimeout(() => {
-            const tile = tilesData[nextPos]; const tileData = (roomData.tiles || {})[nextPos];
-            let decision = "結束回合。";
-
+            const tile = tilesData[nextPos]; const tileData = (roomData.tiles || {})[nextPos]; let decision = "結束回合。";
             if (tile.price > 0) {
-                if (!tileData && newMoney >= tile.price && Math.random() > 0.3) {
-                    decision = `決定投資【${tile.title}】！花費 $${tile.price}`; newMoney -= tile.price; update(ref(db, `rooms/${currentRoom}/tiles/${nextPos}`), { owner: botId, level: 1 });
-                } else if (tileData && tileData.owner === botId && tileData.level < 3 && newMoney >= tile.price && Math.random() > 0.5) {
-                    decision = `決定升級【${tile.title}】！花費 $${tile.price}`; newMoney -= tile.price; update(ref(db, `rooms/${currentRoom}/tiles/${nextPos}`), { level: tileData.level + 1 });
-                } else if (tileData && tileData.owner !== botId) {
-                    const rent = tile.rent * (tileData.level || 1); decision = `踩到地雷！支付給 ${PLAYER_NAMES[tileData.owner]} $${rent}。`; newMoney -= rent;
-                    const oMoney = (roomData.players[tileData.owner]?.money || 0) + rent; set(ref(db, `rooms/${currentRoom}/players/${tileData.owner}/money`), oMoney);
-                }
-            } else if(tile.category === 'event') {
-                if(tile.title === "水圳森林公園") { decision="舉辦野餐，獲得 $500"; newMoney+=500; }
-                if(tile.title === "元大銀行") { decision="領取股息 $1000"; newMoney+=1000; }
-                if(tile.title === "台大醫院") { decision="支付醫療費 $800"; newMoney-=800; }
-                if(tile.title === "人氣牙醫") { decision="支付掛號費 $300"; newMoney-=300; }
-                if(tile.title === "地方稅務局") { decision="繳納稅金 $1500"; newMoney-=1500; }
-                if(tile.title === "遇到垃圾車") { decision="追垃圾車掉落 $500"; newMoney-=500; }
-            }
+                if (!tileData && newMoney >= tile.price && Math.random() > 0.3) { decision = `決定投資【${tile.title}】！花費 $${tile.price}`; newMoney -= tile.price; update(ref(db, `rooms/${currentRoom}/tiles/${nextPos}`), { owner: botId, level: 1 }); } 
+                else if (tileData && tileData.owner === botId && tileData.level < 3 && newMoney >= tile.price && Math.random() > 0.5) { decision = `決定升級【${tile.title}】！花費 $${tile.price}`; newMoney -= tile.price; update(ref(db, `rooms/${currentRoom}/tiles/${nextPos}`), { level: tileData.level + 1 }); } 
+                else if (tileData && tileData.owner !== botId) { const rent = tile.rent * (tileData.level || 1); decision = `踩到地雷！支付給 ${PLAYER_NAMES[tileData.owner]} $${rent}。`; newMoney -= rent; const oMoney = (roomData.players[tileData.owner]?.money || 0) + rent; set(ref(db, `rooms/${currentRoom}/players/${tileData.owner}/money`), oMoney); }
+            } else if(tile.category === 'random_event') {
+                const eventPool = LOCATION_EVENTS[tile.title] || DEFAULT_EVENTS; const ev = eventPool[Math.floor(Math.random() * eventPool.length)];
+                decision = `【突發事件】\n${ev.desc}`; newMoney = Math.max(0, newMoney + ev.money); if (ev.skip > 0) set(ref(db, `rooms/${currentRoom}/players/${botId}/skipTurns`), (pData.skipTurns || 0) + ev.skip); 
+            } else if(tile.category === 'corner_skip') { decision = tile.desc; set(ref(db, `rooms/${currentRoom}/players/${botId}/skipTurns`), (pData.skipTurns || 0) + 1); } 
+            else if(tile.category === 'start') { decision = tile.desc; }
 
-            set(ref(db, `rooms/${currentRoom}/players/${botId}/money`), newMoney);
-            showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision);
-            setTimeout(() => { window.endTurn(); closeModal(); }, 2500);
-        }, dice * 200 + 500);
+            set(ref(db, `rooms/${currentRoom}/players/${botId}/money`), newMoney); showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision); setTimeout(() => { window.endTurn(); closeModal(); }, 2500);
+        }, point * 200 + 500);
     }
 
     const modalOverlay = document.getElementById('event-modal-overlay'); const modalTitle = document.getElementById('modal-title'); const modalDesc = document.getElementById('modal-desc'); const modalActions = document.getElementById('modal-actions');
@@ -522,25 +454,11 @@
 
     window.showTileInfo = function(posIndex) {
         if(modalOverlay.style.display === 'flex') return;
-        const tile = tilesData[posIndex]; const td = (roomData.tiles||{})[posIndex];
-        modalTitle.innerText = `🔍 ${tile.title}`;
+        const tile = tilesData[posIndex]; const td = (roomData.tiles||{})[posIndex]; modalTitle.innerText = `🔍 ${tile.title}`;
         let info = `${tile.desc || '可投資資產'}\n`;
-        if (tile.price > 0) {
-            info += `\n💰 基礎價格：$${tile.price}\n💸 目前過路費：$${tile.rent * (td ? td.level : 1)}`;
-            info += td ? `\n👑 擁有者：${PLAYER_NAMES[td.owner]} (等級 ${td.level})` : `\n🟩 狀態：無人佔領`;
-        }
+        if (tile.price > 0) { info += `\n💰 基礎價格：$${tile.price}\n💸 目前過路費：$${tile.rent * (td ? td.level : 1)}`; info += td ? `\n👑 擁有者：${PLAYER_NAMES[td.owner]} (等級 ${td.level})` : `\n🟩 狀態：無人佔領`; }
         modalDesc.innerText = info; modalActions.innerHTML = `<button class="modal-btn btn-close" onclick="window.closeModal()">關閉</button>`; modalOverlay.style.display = 'flex';
     }
-
-    window.rollDice = function() {
-        document.getElementById('btn-roll').disabled = true;
-        const pData = roomData.players[MY_PLAYER_ID];
-        const dice = Math.floor(Math.random() * 6) + 1;
-        const nextPos = (pData.position + dice) % 28; 
-        let newMoney = pData.money; if (nextPos < pData.position) newMoney += 2000;
-        update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), { position: nextPos, money: newMoney });
-        setTimeout(() => { showPlayerActionModal(nextPos); }, dice * 200 + 300);
-    };
 
     function showPlayerActionModal(posIndex) {
         const tile = tilesData[posIndex]; const td = (roomData.tiles||{})[posIndex]; const pMoney = roomData.players[MY_PLAYER_ID].money;
@@ -549,35 +467,22 @@
 
         if (tile.price > 0) {
             let actBuy="購買地產", actUp="升級地產", actRent="支付租金";
-            if(tile.category==='food'){ actBuy="頂下餐館"; actUp="擴充包廂"; actRent="消費大餐"; }
-            if(tile.category==='biz'){ actBuy="入股公司"; actUp="增資研發"; actRent="付授權費"; }
-
-            if (!td) {
-                modalDesc.innerText = `售價：$${tile.price} \n目前過路費：$${tile.rent}`;
-                modalActions.innerHTML = `<button class="modal-btn btn-buy" onclick="window.buyLand(${posIndex}, ${tile.price})">${actBuy} ($${tile.price})</button>` + endBtn;
-            } else if (td.owner === MY_PLAYER_ID) {
-                if (td.level < 3) {
-                    modalDesc.innerText = `這是你的地盤 (等級 ${td.level})\n升級可使過路費翻倍！`;
-                    modalActions.innerHTML = `<button class="modal-btn btn-upgrade" onclick="window.upgradeLand(${posIndex}, ${tile.price}, ${td.level})">${actUp} ($${tile.price})</button>` + endBtn;
-                } else { modalDesc.innerText = `此處已達最高等級 ⭐⭐⭐\n躺著收錢吧！`; modalActions.innerHTML = endBtn; }
-            } else {
-                const rent = tile.rent * td.level; modalDesc.innerText = `這是 ${PLAYER_NAMES[td.owner]} 的地盤！`;
-                modalActions.innerHTML = `<button class="modal-btn btn-pay" onclick="window.payRent('${td.owner}', ${rent})">${actRent} ($${rent})</button>`;
-            }
-        } else {
-            modalDesc.innerText = tile.desc; let finalMoney = pMoney;
-            if(tile.title === "水圳森林公園") finalMoney+=500; if(tile.title === "元大銀行") finalMoney+=1000;
-            if(tile.title === "台大醫院") finalMoney-=800; if(tile.title === "人氣牙醫") finalMoney-=300;
-            if(tile.title === "地方稅務局") finalMoney-=1500; if(tile.title === "遇到垃圾車") finalMoney-=500;
-            if(finalMoney !== pMoney) { set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/money`), finalMoney); }
-            modalActions.innerHTML = endBtn;
-        }
+            if(tile.category==='food'){ actBuy="頂下餐館"; actUp="擴充包廂"; actRent="消費大餐"; } if(tile.category==='biz'){ actBuy="入股公司"; actUp="增資研發"; actRent="付授權費"; }
+            if (!td) { modalDesc.innerText = `售價：$${tile.price} \n目前過路費：$${tile.rent}`; modalActions.innerHTML = `<button class="modal-btn btn-buy" onclick="window.buyLand(${posIndex}, ${tile.price})">${actBuy} ($${tile.price})</button>` + endBtn; } 
+            else if (td.owner === MY_PLAYER_ID) { if (td.level < 3) { modalDesc.innerText = `這是你的地盤 (等級 ${td.level})\n升級可使過路費翻倍！`; modalActions.innerHTML = `<button class="modal-btn btn-upgrade" onclick="window.upgradeLand(${posIndex}, ${tile.price}, ${td.level})">${actUp} ($${tile.price})</button>` + endBtn; } else { modalDesc.innerText = `此處已達最高等級 ⭐⭐⭐\n躺著收錢吧！`; modalActions.innerHTML = endBtn; } } 
+            else { const rent = tile.rent * td.level; modalDesc.innerText = `這是 ${PLAYER_NAMES[td.owner]} 的地盤！`; modalActions.innerHTML = `<button class="modal-btn btn-pay" onclick="window.payRent('${td.owner}', ${rent})">${actRent} ($${rent})</button>`; }
+        } else if(tile.category === 'random_event') {
+            const eventPool = LOCATION_EVENTS[tile.title] || DEFAULT_EVENTS; const ev = eventPool[Math.floor(Math.random() * eventPool.length)]; modalDesc.innerText = `【突發事件】\n${ev.desc}`;
+            let finalMoney = Math.max(0, pMoney + ev.money); if (finalMoney !== pMoney) set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/money`), finalMoney);
+            if (ev.skip > 0) set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/skipTurns`), (roomData.players[MY_PLAYER_ID].skipTurns || 0) + ev.skip); modalActions.innerHTML = endBtn;
+        } else if(tile.category === 'corner_skip') { modalDesc.innerText = tile.desc; set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/skipTurns`), (roomData.players[MY_PLAYER_ID].skipTurns || 0) + 1); modalActions.innerHTML = endBtn; } 
+        else if(tile.category === 'start') { modalDesc.innerText = tile.desc; modalActions.innerHTML = endBtn; }
     }
 
     window.buyLand = function(pos, price) { const pMoney = roomData.players[MY_PLAYER_ID].money; if(pMoney >= price) { update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price}); set(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { owner: MY_PLAYER_ID, level: 1 }); window.endTurn(); closeModal(); } else alert("資金不足！"); }
     window.upgradeLand = function(pos, price, currentLevel) { const pMoney = roomData.players[MY_PLAYER_ID].money; if(pMoney >= price) { update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price}); update(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { level: currentLevel + 1 }); window.endTurn(); closeModal(); } else alert("資金不足！"); }
-    window.payRent = function(ownerId, rent) { const pMoney = roomData.players[MY_PLAYER_ID].money; update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - rent}); const oMoney = roomData.players[ownerId].money; set(ref(db, `rooms/${currentRoom}/players/${ownerId}/money`), oMoney + rent); window.endTurn(); closeModal(); }
-    window.endTurn = function() { const nextTurn = ((roomData.turnIndex || 0) + 1) % 4; update(roomRef, { turnIndex: nextTurn, botActionState: null }); }
+    window.payRent = function(ownerId, rent) { const pMoney = roomData.players[MY_PLAYER_ID].money; update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: Math.max(0, pMoney - rent)}); const oMoney = roomData.players[ownerId].money; set(ref(db, `rooms/${currentRoom}/players/${ownerId}/money`), oMoney + rent); window.endTurn(); closeModal(); }
+    window.endTurn = function() { const nextTurn = ((roomData.turnIndex || 0) + 1) % 4; update(roomRef, { turnIndex: nextTurn, actionState: null }); }
     document.getElementById('btn-locate').addEventListener('click', () => { focusCameraOn(roomData.players[MY_PLAYER_ID].position); });
 
 </script>
