@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>渴口手沖大富翁 - 終極縫合版</title>
+    <title>渴口手沖大富翁 - 防卡死版</title>
     <style>
         :root { --tile-size: 180px; --map-size: calc(var(--tile-size) * 8); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #1a252f; font-family: 'Helvetica Neue', Arial, sans-serif; touch-action: none; }
@@ -36,11 +36,12 @@
 
         #char-cuibi { background-image: url('cuibi.png'); } #char-bota { background-image: url('bota.png'); } #char-tsui { background-image: url('tsui.png'); } #char-kaka { background-image: url('kaka.png'); }
 
-        #ui-layer { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 100; width: 90%; max-width: 400px; justify-content: center;}
-        button { padding: 15px 30px; font-size: 18px; font-weight: bold; color: white; background-color: #e67e22; border: none; border-radius: 30px; box-shadow: 0 6px 10px rgba(0,0,0,0.4); cursor: pointer; transition: all 0.2s; white-space: nowrap;}
+        #ui-layer { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: none; gap: 10px; z-index: 100; width: 95%; max-width: 450px; justify-content: center; flex-wrap: nowrap;}
+        button { padding: 12px 25px; font-size: 16px; font-weight: bold; color: white; background-color: #e67e22; border: none; border-radius: 30px; box-shadow: 0 6px 10px rgba(0,0,0,0.4); cursor: pointer; transition: all 0.2s; white-space: nowrap;}
         button:active { transform: translateY(3px); box-shadow: 0 3px 5px rgba(0,0,0,0.4); }
         button:disabled { background-color: #95a5a6; cursor: not-allowed; transform: none; box-shadow: none;}
         #btn-locate { background-color: #2980b9; }
+        #btn-force-next { background-color: #c0392b; font-size: 14px; padding: 12px 15px; display: none; }
         
         #turn-indicator { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); padding: 10px 25px; border-radius: 20px; font-size: 18px; font-weight: bold; color: #2c3e50; box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 100; display: none; border: 2px solid #bdc3c7;}
 
@@ -52,9 +53,9 @@
         .score-assets { font-size: 13px; color: #7f8c8d; margin-left: 18px; margin-top: 2px;}
 
         @media (max-width: 768px) {
-            #scoreboard { top: auto; bottom: 90px; left: 10px; padding: 10px; min-width: 150px; background: rgba(255,255,255,0.85); box-shadow: none;}
+            #scoreboard { top: auto; bottom: 85px; left: 10px; padding: 10px; min-width: 150px; background: rgba(255,255,255,0.85); box-shadow: none;}
             #scoreboard-title { font-size: 12px; } .score-row { font-size: 13px; } .score-assets { font-size: 11px; }
-            #turn-indicator { top: 15px; padding: 8px 15px; font-size: 14px; } #ui-layer { bottom: 20px; gap: 10px; } button { padding: 12px 20px; font-size: 16px; }
+            #turn-indicator { top: 15px; padding: 8px 15px; font-size: 14px; } #ui-layer { bottom: 15px; gap: 8px; } button { padding: 10px 15px; font-size: 15px; }
         }
 
         #lobby-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #2c3e50; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; overflow-y: auto;}
@@ -69,7 +70,6 @@
         .preview-kaka { background-image: url('kaka.png'); } .preview-cuibi { background-image: url('cuibi.png'); } .preview-bota { background-image: url('bota.png'); } .preview-tsui { background-image: url('tsui.png'); }
         .char-name { font-weight: bold; color: #2c3e50; font-size: 16px; margin-bottom: 5px;} .char-status { font-size: 12px; color: #7f8c8d; } .char-status.host { color: #8e44ad; font-weight: bold;} .char-status.me { color: #27ae60; font-weight: bold;}
 
-        /* 🎲 擲骰與一般彈窗 */
         #dice-ritual-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 500; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
         #dice-ritual-title { font-size: 32px; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
         .dice-cube { font-size: 100px; width: 150px; height: 150px; background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%); color: #2c3e50; display: flex; justify-content: center; align-items: center; border-radius: 25px; box-shadow: inset 0 0 20px rgba(0,0,0,0.2), 0 15px 30px rgba(0,0,0,0.6); border: 4px solid #bdc3c7; font-weight: bold; transition: transform 0.3s; }
@@ -82,7 +82,6 @@
         .modal-btn { width: 100%; margin-bottom: 12px; }
         .btn-buy { background-color: #27ae60; } .btn-upgrade { background-color: #f39c12; } .btn-pay { background-color: #c0392b; } .btn-close { background-color: #95a5a6; }
 
-        /* 🔨 法拍專屬 UI */
         #auction-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 400; display: none; flex-direction: column; justify-content: center; align-items: center; }
         #auction-modal { background: #fdfbf7; width: 85%; max-width: 400px; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 15px 50px rgba(230, 126, 34, 0.4); border: 4px solid #e67e22;}
         .auc-title { font-size: 28px; color: #d35400; font-weight: bold; margin-bottom: 10px; }
@@ -133,7 +132,6 @@
 <div id="scoreboard"><div id="scoreboard-title">📈 資產與狀態</div><div id="scoreboard-list"></div></div>
 <div id="dice-ritual-overlay"><div id="dice-ritual-title">準備擲骰...</div><div class="dice-cube" id="dice-cube-display">🎲</div></div>
 
-<!-- 🔨 全新法拍競標視窗 -->
 <div id="auction-overlay">
     <div id="auction-modal">
         <div class="auc-title">🔨 法拍競標中</div>
@@ -161,6 +159,7 @@
 <div id="ui-layer">
     <button id="btn-locate">📍 找主角</button>
     <button id="btn-roll" onclick="window.initiateRoll()">🎲 擲骰子</button>
+    <button id="btn-force-next" onclick="window.endTurn()" style="display:none;">⚠️ 房主解卡</button>
 </div>
 
 <div id="event-modal-overlay"><div id="event-modal"><div id="modal-title"></div><div id="modal-desc"></div><div id="modal-actions"></div></div></div>
@@ -180,7 +179,23 @@
 
     // 清潔工
     function sweepGhostRooms() { get(ref(db, 'rooms')).then(snapshot => { if (!snapshot.exists()) return; const allRooms = snapshot.val(); const now = Date.now(); const updates = {}; for (const roomId in allRooms) { const r = allRooms[roomId]; if (r.lastActive && (now - r.lastActive > 3 * 60 * 1000)) updates[roomId] = null; } if (Object.keys(updates).length > 0) update(ref(db, 'rooms'), updates); }); } sweepGhostRooms();
-    setInterval(() => { if (roomData && roomData.status === 'playing' && MY_PLAYER_ID === roomData.hostId) update(ref(db, `rooms/${currentRoom}`), { lastActive: Date.now() }); }, 60000); 
+    
+    // 心跳與防卡死檢測
+    setInterval(() => { 
+        if (roomData && roomData.status === 'playing' && MY_PLAYER_ID === roomData.hostId) {
+            update(ref(db, `rooms/${currentRoom}`), { lastActive: Date.now() }); 
+            // 🤖 防卡死：如果 Bot 卡在動畫超過 25 秒，房主自動介入結束回合
+            const activePlayer = PLAYER_ORDER[roomData.turnIndex || 0];
+            const pData = roomData.players && roomData.players[activePlayer];
+            if (pData && pData.isBot && roomData.actionState) {
+                let lastTime = Math.max(roomData.lastRoll?.time || 0, roomData.sysMsg?.time || 0);
+                if (Date.now() - lastTime > 25000) {
+                    console.log("【防卡死系統】偵測到電腦行動中斷，強制接管！");
+                    window.endTurn();
+                }
+            }
+        }
+    }, 5000); 
 
     const LOCATION_EVENTS = {
         "水圳森林公園": [{ desc: "帶手沖咖啡去野餐大受歡迎！賺取 $1000。", money: 1000, skip: 0 }, { desc: "在草地上野餐被野狗搶走食物，重買花費 $300。", money: -300, skip: 0 }, { desc: "遇到來散步的熟客，聊得很開心，獲得小費 $500。", money: 500, skip: 0 }, { desc: "躺在草地上睡著了，錯過營業時間，暫停一回合。", money: 0, skip: 1 }, { desc: "舉辦假日文創市集，攤位費收入 $800。", money: 800, skip: 0 }],
@@ -206,93 +221,105 @@
 
     function switchLobbyState(state) { currentLobbyState = state; document.getElementById('lobby-state-mode').style.display = state === 'mode' ? 'block' : 'none'; document.getElementById('lobby-state-single').style.display = state === 'single' ? 'block' : 'none'; document.getElementById('lobby-state-multi-input').style.display = state === 'multi-input' ? 'block' : 'none'; document.getElementById('lobby-state-multi-room').style.display = state === 'multi-room' ? 'block' : 'none'; }
     window.goStateSingle = () => switchLobbyState('single'); window.goStateMultiInput = () => switchLobbyState('multi-input'); window.backToMode = () => switchLobbyState('mode');
-    window.startSingleGame = function(selectedPid) { currentRoom = 'bot-' + Math.floor(Math.random() * 100000); MY_PLAYER_ID = selectedPid; roomRef = ref(db, 'rooms/' + currentRoom); const roomInitialData = { status: 'playing', turnIndex: 0, hostId: selectedPid, lastActive: Date.now(), players: {} }; PLAYER_ORDER.forEach(pid => { roomInitialData.players[pid] = { money: 12000, position: 0, laps: 0, isBot: (pid !== selectedPid), skipTurns: 0 }; }); set(roomRef, roomInitialData).then(() => { listenToRoom(); }).catch(err => alert("建立失敗")); }
-    window.joinMultiRoom = function() { const inputId = document.getElementById('input-room-id').value; if (!inputId) return; currentRoom = inputId; document.getElementById('display-room-id').innerText = currentRoom; roomRef = ref(db, 'rooms/' + currentRoom); MY_PLAYER_ID = null; get(roomRef).then((snap) => { if(!snap.exists() || !snap.val().status) set(roomRef, { status: 'waiting', lastActive: Date.now() }); switchLobbyState('multi-room'); listenToRoom(); }); }
-    window.leaveRoom = function() { if (MY_PLAYER_ID) { const myRef = ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`); onDisconnect(myRef).cancel(); remove(myRef); if(roomData.hostId === MY_PLAYER_ID) { const hostRef = ref(db, `rooms/${currentRoom}/hostId`); onDisconnect(hostRef).cancel(); set(hostRef, null); } MY_PLAYER_ID = null; } roomRef = null; switchLobbyState('mode'); }
-    window.claimMultiSlot = function(targetPid) { const players = roomData.players || {}; if (players[targetPid] && !players[targetPid].isBot) { if (targetPid === MY_PLAYER_ID) return; alert("此角色已被選走！"); return; } if (MY_PLAYER_ID && MY_PLAYER_ID !== targetPid) { const oldRef = ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`); onDisconnect(oldRef).cancel(); remove(oldRef); if(roomData.hostId === MY_PLAYER_ID) { const oldHostRef = ref(db, `rooms/${currentRoom}/hostId`); onDisconnect(oldHostRef).cancel(); set(oldHostRef, null); } } MY_PLAYER_ID = targetPid; const myPlayerRef = ref(db, `rooms/${currentRoom}/players/${targetPid}`); set(myPlayerRef, { money: 12000, position: 0, laps: 0, isBot: false, skipTurns: 0 }); onDisconnect(myPlayerRef).update({ isBot: true }); update(ref(db, `rooms/${currentRoom}`), { lastActive: Date.now() }); if (!roomData.hostId) { const hostRef = ref(db, `rooms/${currentRoom}/hostId`); set(hostRef, targetPid); onDisconnect(hostRef).remove(); } }
-    function renderMultiLobby() { const players = roomData.players || {}; const hostId = roomData.hostId; let gridHTML = ''; PLAYER_ORDER.forEach(pid => { const isTakenByHuman = players[pid] && !players[pid].isBot; const isMe = (pid === MY_PLAYER_ID); const isHost = (pid === hostId); let cardClass = 'char-card'; let statusText = '【 空位 】點擊扮演'; let statusClass = ''; if (isTakenByHuman) { if (isMe) { cardClass += ' selected'; statusText = isHost ? '這是你 (房主)' : '這是你 (已準備)'; statusClass = isHost ? 'host' : 'me'; } else { cardClass += ' taken'; statusText = isHost ? '其他玩家 (房主)' : '其他玩家已選擇'; } } gridHTML += `<div class="${cardClass}" onclick="window.claimMultiSlot('${pid}')"><div class="char-img-preview preview-${pid}"></div><div class="char-name">${PLAYER_NAMES[pid]}</div><div class="char-status ${statusClass}">${statusText}</div></div>`; }); document.getElementById('multi-char-grid').innerHTML = gridHTML; const btnStart = document.getElementById('btn-start-multi'); if (MY_PLAYER_ID && MY_PLAYER_ID === hostId) btnStart.style.display = 'block'; else btnStart.style.display = 'none'; }
-    window.startMultiGame = function() { const updates = { status: 'playing', turnIndex: 0, lastActive: Date.now() }; PLAYER_ORDER.forEach(pid => { if (!roomData.players || !roomData.players[pid] || roomData.players[pid].isBot) { updates[`players/${pid}/money`] = 12000; updates[`players/${pid}/position`] = 0; updates[`players/${pid}/laps`] = 0; updates[`players/${pid}/isBot`] = true; updates[`players/${pid}/skipTurns`] = 0; } }); update(roomRef, updates); }
 
-    function playDiceRitual(playerId, point, callback) { const overlay = document.getElementById('dice-ritual-overlay'); const title = document.getElementById('dice-ritual-title'); const diceDisplay = document.getElementById('dice-cube-display'); const pPos = (roomData.players[playerId]?.position) || 0; focusCameraOn(pPos); title.innerText = `【${PLAYER_NAMES[playerId]}】擲骰子中...`; overlay.style.display = 'flex'; diceDisplay.style.animation = 'shakeDice 0.3s infinite'; let shuffle = setInterval(() => { diceDisplay.innerText = Math.floor(Math.random() * 6) + 1; }, 80); setTimeout(() => { clearInterval(shuffle); diceDisplay.style.animation = 'none'; diceDisplay.innerText = point; diceDisplay.style.transform = 'scale(1.3)'; title.innerText = `🎲 擲出了 ${point} 點！`; setTimeout(() => { overlay.style.display = 'none'; diceDisplay.style.transform = 'scale(1)'; if(callback) callback(); }, 1200); }, 1500); }
+    window.startSingleGame = function(selectedPid) {
+        currentRoom = 'bot-' + Math.floor(Math.random() * 100000); MY_PLAYER_ID = selectedPid; roomRef = ref(db, 'rooms/' + currentRoom);
+        const roomInitialData = { status: 'playing', turnIndex: 0, hostId: selectedPid, lastActive: Date.now(), players: {} };
+        PLAYER_ORDER.forEach(pid => { roomInitialData.players[pid] = { money: 12000, position: 0, laps: 0, isBot: (pid !== selectedPid), skipTurns: 0 }; });
+        set(roomRef, roomInitialData).then(() => { listenToRoom(); }).catch(err => alert("建立失敗"));
+    }
 
-    window.calcPayment = function(pid, amount) { let pData = roomData.players[pid]; let currentMoney = pData.money; let debt = amount - currentMoney; let updates = {}; let soldLogs = []; if (debt > 0) { let tiles = roomData.tiles || {}; let myProperties = []; for (let i = 0; i < 28; i++) { if (tiles[i] && tiles[i].owner === pid) { myProperties.push({ id: i, value: (tilesData[i].price * (tiles[i].level || 1)) / 2, title: tilesData[i].title }); } } while (debt > 0 && myProperties.length > 0) { let bestIdx = -1; let bestDiff = Infinity; let maxIdx = -1; let maxVal = -1; for (let i = 0; i < myProperties.length; i++) { let v = myProperties[i].value; if (v >= debt && v - debt < bestDiff) { bestDiff = v - debt; bestIdx = i; } if (v > maxVal) { maxVal = v; maxIdx = i; } } let sellIdx = bestIdx !== -1 ? bestIdx : maxIdx; let prop = myProperties[sellIdx]; debt -= prop.value; currentMoney += prop.value; soldLogs.push(`${prop.title}(+$${prop.value})`); updates[`tiles/${prop.id}`] = null; myProperties.splice(sellIdx, 1); } } updates[`players/${pid}/money`] = currentMoney - amount; return { updates, soldLogs }; }
+    window.joinMultiRoom = function() {
+        const inputId = document.getElementById('input-room-id').value; if (!inputId) return;
+        currentRoom = inputId; document.getElementById('display-room-id').innerText = currentRoom; roomRef = ref(db, 'rooms/' + currentRoom); MY_PLAYER_ID = null; 
+        get(roomRef).then((snap) => { if(!snap.exists() || !snap.val().status) set(roomRef, { status: 'waiting', lastActive: Date.now() }); switchLobbyState('multi-room'); listenToRoom(); });
+    }
 
-    // ==========================================
-    // 🔨 拍賣系統核心邏輯
-    // ==========================================
+    window.leaveRoom = function() {
+        if (MY_PLAYER_ID) { const myRef = ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`); onDisconnect(myRef).cancel(); remove(myRef); if(roomData.hostId === MY_PLAYER_ID) { const hostRef = ref(db, `rooms/${currentRoom}/hostId`); onDisconnect(hostRef).cancel(); set(hostRef, null); } MY_PLAYER_ID = null; }
+        roomRef = null; switchLobbyState('mode');
+    }
+
+    window.claimMultiSlot = function(targetPid) {
+        const players = roomData.players || {};
+        if (players[targetPid] && !players[targetPid].isBot) { if (targetPid === MY_PLAYER_ID) return; alert("此角色已被選走！"); return; }
+        if (MY_PLAYER_ID && MY_PLAYER_ID !== targetPid) { const oldRef = ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`); onDisconnect(oldRef).cancel(); remove(oldRef); if(roomData.hostId === MY_PLAYER_ID) { const oldHostRef = ref(db, `rooms/${currentRoom}/hostId`); onDisconnect(oldHostRef).cancel(); set(oldHostRef, null); } }
+        MY_PLAYER_ID = targetPid; const myPlayerRef = ref(db, `rooms/${currentRoom}/players/${targetPid}`); set(myPlayerRef, { money: 12000, position: 0, laps: 0, isBot: false, skipTurns: 0 });
+        onDisconnect(myPlayerRef).update({ isBot: true }); update(ref(db, `rooms/${currentRoom}`), { lastActive: Date.now() });
+        if (!roomData.hostId) { const hostRef = ref(db, `rooms/${currentRoom}/hostId`); set(hostRef, targetPid); onDisconnect(hostRef).remove(); }
+    }
+
+    function renderMultiLobby() {
+        const players = roomData.players || {}; const hostId = roomData.hostId; let gridHTML = '';
+        PLAYER_ORDER.forEach(pid => {
+            const isTakenByHuman = players[pid] && !players[pid].isBot; const isMe = (pid === MY_PLAYER_ID); const isHost = (pid === hostId);
+            let cardClass = 'char-card'; let statusText = '【 空位 】點擊扮演'; let statusClass = '';
+            if (isTakenByHuman) { if (isMe) { cardClass += ' selected'; statusText = isHost ? '這是你 (房主)' : '這是你 (已準備)'; statusClass = isHost ? 'host' : 'me'; } else { cardClass += ' taken'; statusText = isHost ? '其他玩家 (房主)' : '其他玩家已選擇'; } }
+            gridHTML += `<div class="${cardClass}" onclick="window.claimMultiSlot('${pid}')"><div class="char-img-preview preview-${pid}"></div><div class="char-name">${PLAYER_NAMES[pid]}</div><div class="char-status ${statusClass}">${statusText}</div></div>`;
+        });
+        document.getElementById('multi-char-grid').innerHTML = gridHTML;
+        const btnStart = document.getElementById('btn-start-multi'); if (MY_PLAYER_ID && MY_PLAYER_ID === hostId) btnStart.style.display = 'block'; else btnStart.style.display = 'none';
+    }
+
+    window.startMultiGame = function() {
+        const updates = { status: 'playing', turnIndex: 0, lastActive: Date.now() };
+        PLAYER_ORDER.forEach(pid => { if (!roomData.players || !roomData.players[pid] || roomData.players[pid].isBot) { updates[`players/${pid}/money`] = 12000; updates[`players/${pid}/position`] = 0; updates[`players/${pid}/laps`] = 0; updates[`players/${pid}/isBot`] = true; updates[`players/${pid}/skipTurns`] = 0; } });
+        update(roomRef, updates);
+    }
+
+    function playDiceRitual(playerId, point, callback) {
+        const overlay = document.getElementById('dice-ritual-overlay'); const title = document.getElementById('dice-ritual-title'); const diceDisplay = document.getElementById('dice-cube-display');
+        const pPos = (roomData.players[playerId]?.position) || 0; focusCameraOn(pPos);
+        title.innerText = `【${PLAYER_NAMES[playerId]}】擲骰子中...`; overlay.style.display = 'flex'; diceDisplay.style.animation = 'shakeDice 0.3s infinite';
+        let shuffle = setInterval(() => { diceDisplay.innerText = Math.floor(Math.random() * 6) + 1; }, 80);
+        setTimeout(() => {
+            clearInterval(shuffle); diceDisplay.style.animation = 'none'; diceDisplay.innerText = point; diceDisplay.style.transform = 'scale(1.3)'; title.innerText = `🎲 擲出了 ${point} 點！`;
+            setTimeout(() => { overlay.style.display = 'none'; diceDisplay.style.transform = 'scale(1)'; if(callback) callback(); }, 1200); 
+        }, 1500); 
+    }
+
+    window.calcPayment = function(pid, amount) {
+        let pData = roomData.players[pid]; let currentMoney = pData.money; let debt = amount - currentMoney; let updates = {}; let soldLogs = [];
+        if (debt > 0) {
+            let tiles = roomData.tiles || {}; let myProperties = [];
+            for (let i = 0; i < 28; i++) { if (tiles[i] && tiles[i].owner === pid) { myProperties.push({ id: i, value: (tilesData[i].price * (tiles[i].level || 1)) / 2, title: tilesData[i].title }); } }
+            while (debt > 0 && myProperties.length > 0) {
+                let bestIdx = -1; let bestDiff = Infinity; let maxIdx = -1; let maxVal = -1;
+                for (let i = 0; i < myProperties.length; i++) { let v = myProperties[i].value; if (v >= debt && v - debt < bestDiff) { bestDiff = v - debt; bestIdx = i; } if (v > maxVal) { maxVal = v; maxIdx = i; } }
+                let sellIdx = bestIdx !== -1 ? bestIdx : maxIdx; let prop = myProperties[sellIdx];
+                debt -= prop.value; currentMoney += prop.value; soldLogs.push(`${prop.title}(+$${prop.value})`);
+                updates[`tiles/${prop.id}`] = null; myProperties.splice(sellIdx, 1);
+            }
+        }
+        updates[`players/${pid}/money`] = currentMoney - amount; return { updates, soldLogs };
+    }
+
+    // 🔨 拍賣系統
     let auctionTimerInterval = null;
-
     function renderAuctionUI() {
         if (!roomData.auction) {
             document.getElementById('auction-overlay').style.display = 'none';
-            if(auctionTimerInterval) { clearInterval(auctionTimerInterval); auctionTimerInterval = null; }
-            return;
+            if(auctionTimerInterval) { clearInterval(auctionTimerInterval); auctionTimerInterval = null; } return;
         }
-
-        const auc = roomData.auction;
-        document.getElementById('auction-overlay').style.display = 'flex';
-        document.getElementById('auc-prop-name').innerText = tilesData[auc.propId].title;
-        document.getElementById('auc-price-display').innerText = `$${auc.bid}`;
+        const auc = roomData.auction; document.getElementById('auction-overlay').style.display = 'flex';
+        document.getElementById('auc-prop-name').innerText = tilesData[auc.propId].title; document.getElementById('auc-price-display').innerText = `$${auc.bid}`;
         document.getElementById('auc-bidder-display').innerText = auc.bidder !== 'none' ? `最高出價：${PLAYER_NAMES[auc.bidder]}` : '無人出價 (10元起)';
-        
-        if(!auctionTimerInterval) {
-            auctionTimerInterval = setInterval(() => {
-                if(!roomData.auction) return;
-                const timeLeft = Math.max(0, Math.ceil((roomData.auction.endTime - Date.now()) / 1000));
-                document.getElementById('auc-timer-display').innerText = `倒數 ${timeLeft} 秒`;
-            }, 200);
-        }
+        if(!auctionTimerInterval) { auctionTimerInterval = setInterval(() => { if(!roomData.auction) return; const timeLeft = Math.max(0, Math.ceil((roomData.auction.endTime - Date.now()) / 1000)); document.getElementById('auc-timer-display').innerText = `倒數 ${timeLeft} 秒`; }, 200); }
     }
 
-    window.startAuction = function(pos) {
-        window.closeModal(); 
-        const updates = { [`rooms/${currentRoom}/auction`]: { propId: pos, bid: 10, bidder: 'none', endTime: Date.now() + 10000 } };
-        update(ref(db, '/'), updates);
-    }
+    window.startAuction = function(pos) { window.closeModal(); const updates = { [`rooms/${currentRoom}/auction`]: { propId: pos, bid: 10, bidder: 'none', endTime: Date.now() + 10000 } }; update(ref(db, '/'), updates); }
+    window.placeBid = function(addAmount) { if (!roomData.auction) return; const myMoney = roomData.players[MY_PLAYER_ID].money; const newBid = roomData.auction.bid + addAmount; if (myMoney >= newBid) { update(ref(db, `rooms/${currentRoom}/auction`), { bid: newBid, bidder: MY_PLAYER_ID, endTime: Date.now() + 7000 }); } else { alert("現金不足，無法出價！"); } }
 
-    window.placeBid = function(addAmount) {
-        if (!roomData.auction) return;
-        const myMoney = roomData.players[MY_PLAYER_ID].money;
-        const newBid = roomData.auction.bid + addAmount;
-        if (myMoney >= newBid) {
-            update(ref(db, `rooms/${currentRoom}/auction`), { bid: newBid, bidder: MY_PLAYER_ID, endTime: Date.now() + 7000 });
-        } else { alert("現金不足，無法出價！"); }
-    }
-
-    // 房主專屬：拍賣結算與 Bot 出價迴圈
     setInterval(() => {
         if (!roomData || !roomData.auction || MY_PLAYER_ID !== roomData.hostId) return;
-
-        const auc = roomData.auction;
-        const timeLeft = auc.endTime - Date.now();
-
+        const auc = roomData.auction; const timeLeft = auc.endTime - Date.now();
         if (timeLeft <= 0) {
-            const updates = { [`rooms/${currentRoom}/auction`]: null };
-            let decisionMsg = `無人出價，【${tilesData[auc.propId].title}】流標。`;
-
-            if (auc.bidder !== 'none') {
-                const bidderMoney = roomData.players[auc.bidder].money;
-                updates[`rooms/${currentRoom}/players/${auc.bidder}/money`] = bidderMoney - auc.bid;
-                updates[`rooms/${currentRoom}/tiles/${auc.propId}`] = { owner: auc.bidder, level: 1 };
-                decisionMsg = `恭喜【${PLAYER_NAMES[auc.bidder]}】以 $${auc.bid} 標下【${tilesData[auc.propId].title}】！`;
-            }
-
-            // 發送系統公告
-            updates[`rooms/${currentRoom}/sysMsg`] = { title: "法拍結果", desc: decisionMsg, time: Date.now() };
-            update(ref(db, '/'), updates).then(() => { setTimeout(()=> window.endTurn(), 3500); });
-            roomData.auction = null; // 防止重複觸發
+            const updates = { [`rooms/${currentRoom}/auction`]: null }; let decisionMsg = `無人出價，【${tilesData[auc.propId].title}】流標。`;
+            if (auc.bidder !== 'none') { const bidderMoney = roomData.players[auc.bidder].money; updates[`rooms/${currentRoom}/players/${auc.bidder}/money`] = bidderMoney - auc.bid; updates[`rooms/${currentRoom}/tiles/${auc.propId}`] = { owner: auc.bidder, level: 1 }; decisionMsg = `恭喜【${PLAYER_NAMES[auc.bidder]}】以 $${auc.bid} 標下【${tilesData[auc.propId].title}】！`; }
+            updates[`rooms/${currentRoom}/sysMsg`] = { title: "法拍結果", desc: decisionMsg, time: Date.now() }; update(ref(db, '/'), updates).then(() => { setTimeout(()=> window.endTurn(), 3500); }); roomData.auction = null;
         } else {
-            // Bot 出價邏輯
             PLAYER_ORDER.forEach(pid => {
-                if (roomData.players[pid] && roomData.players[pid].isBot) {
-                    const botMoney = roomData.players[pid].money;
-                    const propVal = tilesData[auc.propId].price;
-                    if (auc.bidder !== pid && botMoney > auc.bid + 100 && auc.bid < propVal * 0.8) {
-                        if (Math.random() < 0.2) { 
-                            update(ref(db, `rooms/${currentRoom}/auction`), { bid: auc.bid + 100, bidder: pid, endTime: Date.now() + 7000 });
-                        }
-                    }
-                }
+                if (roomData.players[pid] && roomData.players[pid].isBot) { const botMoney = roomData.players[pid].money; const propVal = tilesData[auc.propId].price; if (auc.bidder !== pid && botMoney > auc.bid + 100 && auc.bid < propVal * 0.8) { if (Math.random() < 0.2) { update(ref(db, `rooms/${currentRoom}/auction`), { bid: auc.bid + 100, bidder: pid, endTime: Date.now() + 7000 }); } } }
             });
         }
     }, 800);
@@ -301,29 +328,33 @@
     function listenToRoom() {
         onValue(roomRef, (snapshot) => {
             roomData = snapshot.val() || {};
-            if (isFirstLoad) { 
-                if (roomData.lastRoll) localLastRollTime = roomData.lastRoll.time; 
-                if (roomData.sysMsg) localSysMsgTime = roomData.sysMsg.time; 
-                isFirstLoad = false; 
+            
+            // 👑 房主斷線自動繼承系統
+            if (roomData.status === 'playing' && !roomData.hostId && MY_PLAYER_ID) {
+                let firstHuman = PLAYER_ORDER.find(p => roomData.players && roomData.players[p] && !roomData.players[p].isBot);
+                if (firstHuman === MY_PLAYER_ID) {
+                    const hostRef = ref(db, `rooms/${currentRoom}/hostId`);
+                    set(hostRef, MY_PLAYER_ID);
+                    onDisconnect(hostRef).remove(); // 註冊新的遺言
+                    console.log("【系統】原房主已離開，你自動接任新房主！");
+                }
             }
+
+            if (isFirstLoad) { if (roomData.lastRoll) localLastRollTime = roomData.lastRoll.time; if (roomData.sysMsg) localSysMsgTime = roomData.sysMsg.time; isFirstLoad = false; }
             if (!roomData.status || roomData.status === 'waiting') { if(currentLobbyState === 'multi-room') renderMultiLobby(); return; }
             if (roomData.status === 'game_over') { showGameOverModal(); return; }
 
             if (roomData.status === 'playing' && !isGameRunning) {
-                document.getElementById('lobby-screen').style.display = 'none'; document.getElementById('viewport').style.display = 'block';
-                document.getElementById('ui-layer').style.display = 'flex'; document.getElementById('turn-indicator').style.display = 'block'; document.getElementById('scoreboard').style.display = 'flex';
-                isGameRunning = true;
+                document.getElementById('lobby-screen').style.display = 'none'; document.getElementById('viewport').style.display = 'block'; document.getElementById('ui-layer').style.display = 'flex'; document.getElementById('turn-indicator').style.display = 'block'; document.getElementById('scoreboard').style.display = 'flex'; isGameRunning = true;
             }
             
-            // 處理拍賣 UI
             renderAuctionUI();
 
-            // 🛑 【修復 Bug】處理全域系統公告並自動關閉 (如拍賣結果)
             if (roomData.sysMsg && roomData.sysMsg.time > localSysMsgTime) {
                 localSysMsgTime = roomData.sysMsg.time;
                 showSysModal(roomData.sysMsg.title, roomData.sysMsg.desc);
                 document.getElementById('modal-actions').innerHTML = `<button class="modal-btn btn-close" onclick="window.closeModal()">確認</button>`;
-                setTimeout(() => { window.closeModal(); }, 3500); // 3.5秒後強制作廢彈窗
+                setTimeout(() => { window.closeModal(); }, 3500); 
             }
             
             if (roomData.lastRoll && roomData.lastRoll.time > localLastRollTime) {
@@ -365,29 +396,33 @@
         if (isGameOver && roomData.status === 'playing') { update(ref(db, `rooms/${currentRoom}`), { status: 'game_over', bankruptPlayer: bankruptPlayer }); return; }
 
         const turnIndex = roomData.turnIndex || 0; const activePlayer = PLAYER_ORDER[turnIndex]; const pData = players[activePlayer];
-        document.getElementById('turn-indicator').innerText = `現在是【${PLAYER_NAMES[activePlayer]}】的回合`; const btnRoll = document.getElementById('btn-roll');
+        document.getElementById('turn-indicator').innerText = `現在是【${PLAYER_NAMES[activePlayer]}】的回合`; 
+        const btnRoll = document.getElementById('btn-roll');
         
+        // ⚠️ 房主專屬解卡按鈕
+        if (MY_PLAYER_ID === roomData.hostId && activePlayer !== MY_PLAYER_ID) {
+            document.getElementById('btn-force-next').style.display = 'block';
+        } else {
+            document.getElementById('btn-force-next').style.display = 'none';
+        }
+
         if (pData.skipTurns > 0) {
             btnRoll.disabled = true;
-            if (activePlayer === MY_PLAYER_ID && !roomData.actionState) {
-                update(ref(db, `rooms/${currentRoom}`), { actionState: 'skipping', lastActive: Date.now() });
-                showSysModal("暫停一回合", "你目前處於休息狀態，跳過此回合！"); setTimeout(() => { set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/skipTurns`), pData.skipTurns - 1); window.endTurn(); closeModal(); }, 2500);
-            } else if (pData.isBot && MY_PLAYER_ID === roomData.hostId && !roomData.actionState) {
-                update(ref(db, `rooms/${currentRoom}`), { actionState: 'skipping', lastActive: Date.now() });
-                showSysModal(`【${PLAYER_NAMES[activePlayer]}】狀態`, "因事件影響，原地休息一回合！"); setTimeout(() => { set(ref(db, `rooms/${currentRoom}/players/${activePlayer}/skipTurns`), pData.skipTurns - 1); window.endTurn(); closeModal(); }, 2500);
-            }
+            if (activePlayer === MY_PLAYER_ID && !roomData.actionState) { update(ref(db, `rooms/${currentRoom}`), { actionState: 'skipping', lastActive: Date.now() }); showSysModal("暫停一回合", "你目前處於休息狀態，跳過此回合！"); setTimeout(() => { set(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}/skipTurns`), pData.skipTurns - 1); window.endTurn(); closeModal(); }, 2500);
+            } else if (pData.isBot && MY_PLAYER_ID === roomData.hostId && !roomData.actionState) { update(ref(db, `rooms/${currentRoom}`), { actionState: 'skipping', lastActive: Date.now() }); showSysModal(`【${PLAYER_NAMES[activePlayer]}】狀態`, "因事件影響，原地休息一回合！"); setTimeout(() => { set(ref(db, `rooms/${currentRoom}/players/${activePlayer}/skipTurns`), pData.skipTurns - 1); window.endTurn(); closeModal(); }, 2500); }
             return; 
         }
 
         if (activePlayer === MY_PLAYER_ID) { btnRoll.disabled = false; btnRoll.innerText = "🎲 換你擲骰子"; focusCameraOn(pData.position); } 
         else { btnRoll.disabled = true; btnRoll.innerText = `等待 ${PLAYER_NAMES[activePlayer]}...`; focusCameraOn(pData.position); }
-
-        if (pData.isBot && MY_PLAYER_ID === roomData.hostId && !roomData.actionState) { update(ref(db, `rooms/${currentRoom}`), { actionState: 'rolling' }); setTimeout(() => { const dice = Math.floor(Math.random() * 6) + 1; update(ref(db, `rooms/${currentRoom}/lastRoll`), { player: activePlayer, point: dice, time: Date.now() }); }, 1000); }
+        
+        if (pData.isBot && MY_PLAYER_ID === roomData.hostId && !roomData.actionState) { 
+            update(ref(db, `rooms/${currentRoom}`), { actionState: 'rolling' }); setTimeout(() => { const dice = Math.floor(Math.random() * 6) + 1; update(ref(db, `rooms/${currentRoom}/lastRoll`), { player: activePlayer, point: dice, time: Date.now() }); }, 1000); 
+        }
     }
 
     function showGameOverModal() {
-        if (isShowingGameOver) return; isShowingGameOver = true;
-        document.getElementById('turn-indicator').innerText = "🛑 遊戲結束！"; document.getElementById('btn-roll').disabled = true;
+        if (isShowingGameOver) return; isShowingGameOver = true; document.getElementById('turn-indicator').innerText = "🛑 遊戲結束！"; document.getElementById('btn-roll').disabled = true;
         const players = roomData.players || {}; let leaderboard = PLAYER_ORDER.map(pid => { let totalAssets = players[pid]?.money || 0; const tiles = roomData.tiles || {}; for (let i = 0; i < 28; i++) { if (tiles[i] && tiles[i].owner === pid) totalAssets += tilesData[i].price * (tiles[i].level || 1); } return { name: PLAYER_NAMES[pid], assets: totalAssets }; }); leaderboard.sort((a, b) => b.assets - a.assets);
         let resultHTML = `<h3 style="color:#e74c3c; margin-top:0;">【${roomData.bankruptPlayer}】破產了！</h3><div style="text-align:left; margin-top:15px; background:#f8f9fa; padding:15px; border-radius:10px;">`;
         leaderboard.forEach((player, index) => { resultHTML += `<p style="margin:8px 0; font-weight:bold;">🏆 第 ${index+1} 名：${player.name} <br><span style="color:#27ae60; font-size:14px;">💰 總資產：$${player.assets}</span></p>`; });
@@ -413,13 +448,12 @@
 
             if (tile.price > 0) {
                 if (!tileData) {
-                    // 🤖 Bot 放棄購買，進入法拍流程
                     if (newMoney >= tile.price && Math.random() > 0.4) { decision = `決定投資【${tile.title}】！花費 $${tile.price}`; updates[`players/${botId}/money`] -= tile.price; updates[`tiles/${nextPos}`] = { owner: botId, level: 1 }; update(ref(db, `rooms/${currentRoom}`), updates).then(() => { showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision); setTimeout(() => { window.endTurn(); closeModal(); }, 2500); }); } 
-                    else { decision = `放棄購買【${tile.title}】，進入法拍流程！`; update(ref(db, `rooms/${currentRoom}`), updates).then(() => { showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision); setTimeout(() => { window.startAuction(nextPos); }, 2500); }); }
+                    else { decision = `放棄購買【${tile.title}】，進入法拍流程！`; update(ref(db, `rooms/${currentRoom}`), updates).then(() => { showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision); setTimeout(() => { window.startAuction(nextPos); }, 2500); }); } 
                 } 
                 else if (tileData.owner === botId && tileData.level < 3 && newMoney >= tile.price && Math.random() > 0.5) { decision = `決定升級【${tile.title}】！花費 $${tile.price}`; updates[`players/${botId}/money`] -= tile.price; updates[`tiles/${nextPos}/level`] = tileData.level + 1; update(ref(db, `rooms/${currentRoom}`), updates).then(() => { showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision); setTimeout(() => { window.endTurn(); closeModal(); }, 2500); }); } 
                 else if (tileData.owner !== botId) { const rent = tile.rent * (tileData.level || 1); let payRes = window.calcPayment(botId, rent); Object.assign(updates, payRes.updates); updates[`players/${tileData.owner}/money`] = (roomData.players[tileData.owner].money || 0) + rent; decision = `踩到地雷！支付給 ${PLAYER_NAMES[tileData.owner]} $${rent}。`; if (payRes.soldLogs.length > 0) decision += `\n(為籌錢已法拍變賣：${payRes.soldLogs.join(', ')})`; update(ref(db, `rooms/${currentRoom}`), updates).then(() => { showSysModal(`【${PLAYER_NAMES[botId]}】抵達 ${tile.title}`, decision); setTimeout(() => { window.endTurn(); closeModal(); }, 3500); }); }
-                else { update(ref(db, `rooms/${currentRoom}`), updates).then(() => { window.endTurn(); }); } // 踩到自己滿級地
+                else { update(ref(db, `rooms/${currentRoom}`), updates).then(() => { window.endTurn(); }); } 
             } else if(tile.category === 'random_event') {
                 let eventPool = [...(LOCATION_EVENTS[tile.title] || DEFAULT_EVENTS)]; if (maxLaps >= 2) eventPool = eventPool.concat(POWERFUL_EVENTS); 
                 const ev = eventPool[Math.floor(Math.random() * eventPool.length)]; decision = `【突發事件】\n${ev.desc}`;
@@ -433,7 +467,6 @@
         }, point * 200 + 500);
     }
 
-    // 🔒 雙重鎖定：拍賣期間與遊戲結束期間，禁止關閉任何模態框
     window.closeModal = function() { if (isShowingGameOver || roomData.auction) return; document.getElementById('event-modal-overlay').style.display = 'none'; }
     function showSysModal(title, desc) { if (isShowingGameOver || roomData.auction) return; document.getElementById('modal-title').innerText = title; document.getElementById('modal-desc').innerHTML = desc; document.getElementById('modal-actions').innerHTML = ''; document.getElementById('event-modal-overlay').style.display = 'flex'; }
     
@@ -455,7 +488,6 @@
             let actBuy="購買地產", actUp="升級地產", actRent="支付租金";
             if(tile.category==='food'){ actBuy="頂下餐館"; actUp="擴充包廂"; actRent="消費大餐"; } if(tile.category==='biz'){ actBuy="入股公司"; actUp="增資研發"; actRent="付授權費"; }
             
-            // 🙋‍♂️ 結合拍賣按鈕
             if (!td) { document.getElementById('modal-desc').innerText = `售價：$${tile.price} \n目前過路費：$${tile.rent}`; document.getElementById('modal-actions').innerHTML = `<button class="modal-btn btn-buy" onclick="window.buyLand(${posIndex}, ${tile.price})">${actBuy} ($${tile.price})</button><button class="modal-btn btn-close" onclick="window.startAuction(${posIndex})">放棄購買 (進入法拍)</button>`; } 
             else if (td.owner === MY_PLAYER_ID) { if (td.level < 3) { document.getElementById('modal-desc').innerText = `這是你的地盤 (等級 ${td.level})\n升級可使過路費翻倍！`; document.getElementById('modal-actions').innerHTML = `<button class="modal-btn btn-upgrade" onclick="window.upgradeLand(${posIndex}, ${tile.price}, ${td.level})">${actUp} ($${tile.price})</button>` + endBtn; } else { document.getElementById('modal-desc').innerText = `此處已達最高等級 ⭐⭐⭐\n躺著收錢吧！`; document.getElementById('modal-actions').innerHTML = endBtn; } } 
             else { const rent = tile.rent * td.level; document.getElementById('modal-desc').innerText = `這是 ${PLAYER_NAMES[td.owner]} 的地盤！\n須支付 $${rent}`; document.getElementById('modal-actions').innerHTML = `<button class="modal-btn btn-pay" onclick="window.payRent('${td.owner}', ${rent})">${actRent} ($${rent})</button>`; }
@@ -475,7 +507,7 @@
     window.buyLand = function(pos, price) { const pMoney = roomData.players[MY_PLAYER_ID].money; if(pMoney >= price) { update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price}); set(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { owner: MY_PLAYER_ID, level: 1 }); window.endTurn(); closeModal(); } else alert("資金不足！"); }
     window.upgradeLand = function(pos, price, currentLevel) { const pMoney = roomData.players[MY_PLAYER_ID].money; if(pMoney >= price) { update(ref(db, `rooms/${currentRoom}/players/${MY_PLAYER_ID}`), {money: pMoney - price}); update(ref(db, `rooms/${currentRoom}/tiles/${pos}`), { level: currentLevel + 1 }); window.endTurn(); closeModal(); } else alert("資金不足！"); }
     window.payRent = function(ownerId, rent) { let payRes = window.calcPayment(MY_PLAYER_ID, rent); let updates = payRes.updates; updates[`players/${ownerId}/money`] = (roomData.players[ownerId].money || 0) + rent; update(ref(db, `rooms/${currentRoom}`), updates).then(() => { if(payRes.soldLogs.length > 0) alert(`現金不足！已自動法拍：\n${payRes.soldLogs.join('\n')}`); window.endTurn(); closeModal(); }); }
-    window.endTurn = function() { const nextTurn = ((roomData.turnIndex || 0) + 1) % 4; update(ref(db, `rooms/${currentRoom}`), { turnIndex: nextTurn, actionState: null }); }
+    window.endTurn = function() { const nextTurn = ((roomData.turnIndex || 0) + 1) % 4; update(ref(db, `rooms/${currentRoom}`), { turnIndex: nextTurn, actionState: null }); window.closeModal(); }
     document.getElementById('btn-locate').addEventListener('click', () => { focusCameraOn(roomData.players[MY_PLAYER_ID].position); });
 
 </script>
